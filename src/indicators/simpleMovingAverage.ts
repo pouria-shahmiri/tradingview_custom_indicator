@@ -40,114 +40,230 @@ export function simpleMovingAverage(
 }
 
 /**
- * Exponential Moving Average (EMA) Indicator
- *
- * Calculates the exponential moving average of closing prices over a specified period.
- * EMA gives more weight to recent prices.
- *
- * @param data - Array of candlestick data
- * @param period - Number of periods to calculate the average (default: 20)
- * @returns Array of time-value pairs representing the EMA line
+ * Weighted Moving Average (WMA) Helper
+ * Calculates WMA from an array of values
  */
-export function exponentialMovingAverage(
-  data: CandlestickData<Time>[],
-  period: number = 20
-): { time: Time; value: number }[] {
-  const result: { time: Time; value: number }[] = [];
+function wmaFromValues(values: number[], length: number): number {
+  if (values.length < length) return 0;
 
-  if (data.length < period) {
-    return result;
-  }
-
-  // Calculate multiplier
-  const multiplier = 2 / (period + 1);
-
-  // Calculate initial SMA as the first EMA value
   let sum = 0;
-  for (let i = 0; i < period; i++) {
-    sum += data[i].close;
+  let weightSum = 0;
+
+  for (let i = 0; i < length; i++) {
+    const weight = length - i;
+    sum += values[values.length - 1 - i] * weight;
+    weightSum += weight;
   }
-  let ema = sum / period;
 
-  result.push({
-    time: data[period - 1].time,
-    value: ema,
-  });
+  return sum / weightSum;
+}
 
-  // Calculate EMA for remaining data points
-  for (let i = period; i < data.length; i++) {
-    ema = (data[i].close - ema) * multiplier + ema;
-    result.push({
-      time: data[i].time,
-      value: ema,
-    });
+/**
+ * Exponential Moving Average Helper
+ * Calculates EMA from an array of values
+ */
+function emaFromValues(values: number[], length: number): number[] {
+  if (values.length < length) return [];
+
+  const multiplier = 2 / (length + 1);
+  const result: number[] = [];
+
+  // Calculate initial SMA
+  let sum = 0;
+  for (let i = 0; i < length; i++) {
+    sum += values[i];
+  }
+  let ema = sum / length;
+  result.push(ema);
+
+  // Calculate EMA for remaining values
+  for (let i = length; i < values.length; i++) {
+    ema = (values[i] - ema) * multiplier + ema;
+    result.push(ema);
   }
 
   return result;
 }
 
 /**
- * Relative Strength Index (RSI) Indicator
- *
- * Calculates the RSI, which measures the magnitude of recent price changes
- * to evaluate overbought or oversold conditions.
- *
- * @param data - Array of candlestick data
- * @param period - Number of periods to calculate RSI (default: 14)
- * @returns Array of time-value pairs representing the RSI line
+ * Hull Moving Average (HMA)
+ * HMA = WMA(2 * WMA(src, length/2) - WMA(src, length), sqrt(length))
  */
-export function relativeStrengthIndex(
-  data: CandlestickData<Time>[],
-  period: number = 14
-): { time: Time; value: number }[] {
-  const result: { time: Time; value: number }[] = [];
+function calculateHMA(closeValues: number[], length: number): number[] {
+  const result: number[] = [];
+  const sqrtLength = Math.round(Math.sqrt(length));
+  const halfLength = Math.floor(length / 2);
 
-  if (data.length < period + 1) {
-    return result;
+  for (let i = length - 1; i < closeValues.length; i++) {
+    const dataSlice = closeValues.slice(0, i + 1);
+
+    // Calculate WMA(src, length/2)
+    const wma1 = wmaFromValues(dataSlice, halfLength);
+
+    // Calculate WMA(src, length)
+    const wma2 = wmaFromValues(dataSlice, length);
+
+    // Calculate 2 * WMA(src, length/2) - WMA(src, length)
+    const diff = 2 * wma1 - wma2;
+
+    // Build array for final WMA calculation
+    result.push(diff);
   }
 
-  let gains = 0;
-  let losses = 0;
+  // Now calculate WMA of the result with sqrt(length)
+  const finalResult: number[] = [];
+  for (let i = sqrtLength - 1; i < result.length; i++) {
+    const hma = wmaFromValues(result.slice(0, i + 1), sqrtLength);
+    finalResult.push(hma);
+  }
 
-  // Calculate initial average gain and loss
-  for (let i = 1; i <= period; i++) {
-    const change = data[i].close - data[i - 1].close;
-    if (change >= 0) {
-      gains += change;
-    } else {
-      losses -= change;
+  return finalResult;
+}
+
+/**
+ * Exponential Hull Moving Average (EHMA)
+ * EHMA = EMA(2 * EMA(src, length/2) - EMA(src, length), sqrt(length))
+ */
+function calculateEHMA(closeValues: number[], length: number): number[] {
+  const sqrtLength = Math.round(Math.sqrt(length));
+  const halfLength = Math.floor(length / 2);
+
+  // Calculate EMA(src, length/2)
+  const ema1 = emaFromValues(closeValues, halfLength);
+
+  // Calculate EMA(src, length)
+  const ema2 = emaFromValues(closeValues, length);
+
+  // Calculate 2 * EMA1 - EMA2
+  const diff: number[] = [];
+
+  for (let i = 0; i < Math.min(ema1.length, ema2.length); i++) {
+    diff.push(2 * ema1[i] - ema2[i]);
+  }
+
+  // Calculate final EMA with sqrt(length)
+  const finalEma = emaFromValues(diff, sqrtLength);
+
+  return finalEma;
+}
+
+/**
+ * Triple Hull Moving Average (THMA)
+ * THMA = WMA(WMA(src, length/3) * 3 - WMA(src, length/2) - WMA(src, length), length)
+ */
+function calculateTHMA(closeValues: number[], length: number): number[] {
+  const result: number[] = [];
+  const thirdLength = Math.floor(length / 3);
+  const halfLength = Math.floor(length / 2);
+
+  for (let i = length - 1; i < closeValues.length; i++) {
+    const dataSlice = closeValues.slice(0, i + 1);
+
+    // Calculate WMA(src, length/3)
+    const wma1 = wmaFromValues(dataSlice, thirdLength);
+
+    // Calculate WMA(src, length/2)
+    const wma2 = wmaFromValues(dataSlice, halfLength);
+
+    // Calculate WMA(src, length)
+    const wma3 = wmaFromValues(dataSlice, length);
+
+    // Calculate WMA1 * 3 - WMA2 - WMA3
+    const diff = wma1 * 3 - wma2 - wma3;
+
+    result.push(diff);
+  }
+
+  // Calculate final WMA with length
+  const finalResult: number[] = [];
+  for (let i = length - 1; i < result.length; i++) {
+    const thma = wmaFromValues(result.slice(0, i + 1), length);
+    finalResult.push(thma);
+  }
+
+  return finalResult;
+}
+
+export type HullSuiteMode = 'Hma' | 'Ehma' | 'Thma';
+
+export interface HullSuiteOptions {
+  mode?: HullSuiteMode;
+  length?: number;
+  lengthMult?: number;
+}
+
+export interface HullSuiteResult {
+  main: { time: Time; value: number }[];
+  shifted: { time: Time; value: number }[];
+  colors: string[];
+}
+
+/**
+ * Hull Suite Indicator
+ * Based on "Hull Suite by InSilico" Pine Script
+ *
+ * Provides main hull line, shifted hull line (2 bars back), and trend colors
+ *
+ * @param data - Array of candlestick data
+ * @param options - Configuration options
+ * @returns Object containing main line, shifted line, and colors
+ */
+export function hullSuite(
+  data: CandlestickData<Time>[],
+  options: HullSuiteOptions = {}
+): HullSuiteResult {
+  const {
+    mode = 'Hma',
+    length = 55,
+    lengthMult = 1.0,
+  } = options;
+
+  const effectiveLength = Math.floor(length * lengthMult);
+  const closeValues = data.map(d => d.close);
+
+  let hullValues: number[] = [];
+
+  // Calculate hull based on mode
+  switch (mode) {
+    case 'Hma':
+      hullValues = calculateHMA(closeValues, effectiveLength);
+      break;
+    case 'Ehma':
+      hullValues = calculateEHMA(closeValues, effectiveLength);
+      break;
+    case 'Thma':
+      hullValues = calculateTHMA(closeValues, Math.floor(effectiveLength / 2));
+      break;
+  }
+
+  const main: { time: Time; value: number }[] = [];
+  const shifted: { time: Time; value: number }[] = [];
+  const colors: string[] = [];
+
+  // Map hull values back to data points
+  const startIdx = data.length - hullValues.length;
+
+  for (let i = 0; i < hullValues.length; i++) {
+    const dataIdx = startIdx + i;
+
+    // Main hull (MHULL = HULL[0])
+    main.push({
+      time: data[dataIdx].time,
+      value: hullValues[i],
+    });
+
+    // Shifted hull (SHULL = HULL[2])
+    if (i >= 2) {
+      shifted.push({
+        time: data[dataIdx].time,
+        value: hullValues[i - 2],
+      });
+
+      // Determine color based on trend
+      const color = hullValues[i] > hullValues[i - 2] ? '#00ff00' : '#ff0000';
+      colors.push(color);
     }
   }
 
-  let avgGain = gains / period;
-  let avgLoss = losses / period;
-
-  // Calculate RSI for the first point
-  const rs = avgGain / avgLoss;
-  const rsi = 100 - 100 / (1 + rs);
-
-  result.push({
-    time: data[period].time,
-    value: rsi,
-  });
-
-  // Calculate RSI for remaining data points using smoothed averages
-  for (let i = period + 1; i < data.length; i++) {
-    const change = data[i].close - data[i - 1].close;
-    const gain = change >= 0 ? change : 0;
-    const loss = change < 0 ? -change : 0;
-
-    avgGain = (avgGain * (period - 1) + gain) / period;
-    avgLoss = (avgLoss * (period - 1) + loss) / period;
-
-    const rs = avgGain / avgLoss;
-    const rsi = 100 - 100 / (1 + rs);
-
-    result.push({
-      time: data[i].time,
-      value: rsi,
-    });
-  }
-
-  return result;
+  return { main, shifted, colors };
 }

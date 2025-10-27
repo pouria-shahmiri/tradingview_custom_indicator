@@ -56,17 +56,6 @@ The application displays a candlestick chart with customizable technical indicat
    - Pan by clicking and dragging
    - Hover to see detailed price information
 
-## Custom Indicators
-
-### Simple Moving Average (SMA)
-Calculates the arithmetic mean of closing prices over a specified period. Useful for identifying price trends.
-
-### Exponential Moving Average (EMA)
-Similar to SMA but gives more weight to recent prices, making it more responsive to new information.
-
-### Relative Strength Index (RSI)
-A momentum oscillator measuring the speed and magnitude of price changes. Values range from 0-100, with readings above 70 indicating overbought conditions and below 30 indicating oversold conditions.
-
 ## Technologies
 
 - **React 19**: UI framework

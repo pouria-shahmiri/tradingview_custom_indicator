@@ -24,7 +24,7 @@ export interface OrderBlock {
 }
 
 export interface OrderBlockConfig {
-  volumePivotLength: number;
+  volumePivotLength: number; 
   bullishOBCount: number;
   bearishOBCount: number;
   mitigationMethod: 'Wick' | 'Close';
@@ -50,7 +50,7 @@ function findVolumePivotHighs(bars: Bar[], length: number): Set<number> {
       }
     }
 
-    if (isPivot && currentVolume > 0) {
+    if (isPivot && currentVolume > 0) { 
       pivots.add(i);
     }
   }

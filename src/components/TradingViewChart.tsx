@@ -199,7 +199,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
     const chart = chartRef.current;
     const timeScale = chart.timeScale();
-    const priceScale = candlestickSeriesRef.current.priceScale();
+    const priceScale = chart.priceScale('right');
 
     const updateBoxes = () => {
       if (!orderBlockOverlayRef.current) return;

@@ -205,7 +205,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       if (!orderBlockOverlayRef.current) return;
       orderBlockOverlayRef.current.innerHTML = '';
 
-      // Draw bullish order blocks (green boxes)
+      // Draw bullish order blocks (green lines)
       bullishBlocks.forEach((block) => {
         const startX = timeScale.timeToCoordinate(block.startTime as Time);
         const endX = timeScale.timeToCoordinate(block.endTime as Time);
@@ -215,17 +215,27 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
         if (startX === null || endX === null || topY === null || bottomY === null || avgY === null) return;
 
-        // Create filled box
-        const box = document.createElement('div');
-        box.style.position = 'absolute';
-        box.style.left = `${startX}px`;
-        box.style.top = `${topY}px`;
-        box.style.width = `${endX - startX}px`;
-        box.style.height = `${bottomY - topY}px`;
-        box.style.backgroundColor = 'rgba(22, 148, 0, 0.15)';
-        box.style.border = '1px solid rgba(22, 148, 0, 0.6)';
-        box.style.pointerEvents = 'none';
-        orderBlockOverlayRef.current?.appendChild(box);
+        // Create top line
+        const topLine = document.createElement('div');
+        topLine.style.position = 'absolute';
+        topLine.style.left = `${startX}px`;
+        topLine.style.top = `${topY}px`;
+        topLine.style.width = `${endX - startX}px`;
+        topLine.style.height = '2px';
+        topLine.style.backgroundColor = 'rgba(22, 148, 0, 0.8)';
+        topLine.style.pointerEvents = 'none';
+        orderBlockOverlayRef.current?.appendChild(topLine);
+
+        // Create bottom line
+        const bottomLine = document.createElement('div');
+        bottomLine.style.position = 'absolute';
+        bottomLine.style.left = `${startX}px`;
+        bottomLine.style.top = `${bottomY}px`;
+        bottomLine.style.width = `${endX - startX}px`;
+        bottomLine.style.height = '2px';
+        bottomLine.style.backgroundColor = 'rgba(22, 148, 0, 0.8)';
+        bottomLine.style.pointerEvents = 'none';
+        orderBlockOverlayRef.current?.appendChild(bottomLine);
 
         // Create average line (dashed)
         const avgLine = document.createElement('div');
@@ -239,7 +249,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         orderBlockOverlayRef.current?.appendChild(avgLine);
       });
 
-      // Draw bearish order blocks (red boxes)
+      // Draw bearish order blocks (red lines)
       bearishBlocks.forEach((block) => {
         const startX = timeScale.timeToCoordinate(block.startTime as Time);
         const endX = timeScale.timeToCoordinate(block.endTime as Time);
@@ -249,17 +259,27 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
         if (startX === null || endX === null || topY === null || bottomY === null || avgY === null) return;
 
-        // Create filled box
-        const box = document.createElement('div');
-        box.style.position = 'absolute';
-        box.style.left = `${startX}px`;
-        box.style.top = `${topY}px`;
-        box.style.width = `${endX - startX}px`;
-        box.style.height = `${bottomY - topY}px`;
-        box.style.backgroundColor = 'rgba(255, 17, 0, 0.15)';
-        box.style.border = '1px solid rgba(255, 17, 0, 0.6)';
-        box.style.pointerEvents = 'none';
-        orderBlockOverlayRef.current?.appendChild(box);
+        // Create top line
+        const topLine = document.createElement('div');
+        topLine.style.position = 'absolute';
+        topLine.style.left = `${startX}px`;
+        topLine.style.top = `${topY}px`;
+        topLine.style.width = `${endX - startX}px`;
+        topLine.style.height = '2px';
+        topLine.style.backgroundColor = 'rgba(255, 17, 0, 0.8)';
+        topLine.style.pointerEvents = 'none';
+        orderBlockOverlayRef.current?.appendChild(topLine);
+
+        // Create bottom line
+        const bottomLine = document.createElement('div');
+        bottomLine.style.position = 'absolute';
+        bottomLine.style.left = `${startX}px`;
+        bottomLine.style.top = `${bottomY}px`;
+        bottomLine.style.width = `${endX - startX}px`;
+        bottomLine.style.height = '2px';
+        bottomLine.style.backgroundColor = 'rgba(255, 17, 0, 0.8)';
+        bottomLine.style.pointerEvents = 'none';
+        orderBlockOverlayRef.current?.appendChild(bottomLine);
 
         // Create average line (dashed)
         const avgLine = document.createElement('div');

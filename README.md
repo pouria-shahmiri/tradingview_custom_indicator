@@ -1,29 +1,23 @@
-# TradingView Advanced Chart with Custom Indicators
+# TradingView Chart with Order Block Detector
 
-A React + TypeScript project built with Vite that features both TradingView's Advanced Chart widget and custom technical indicators including the Order Block Detector.
+A React + TypeScript project built with Vite that features both a custom chart with Order Block Detector indicator and TradingView's Advanced Chart widget with drawing tools.
 
 ## Features
 
-- **TradingView Advanced Chart Widget**: Toggle between custom chart and real TradingView advanced chart
-  - Real-time market data from TradingView
-  - Full-featured charting interface
-  - Support for any trading symbol (stocks, crypto, forex, etc.)
+- **Two Chart Modes**:
+  - **Custom Chart**: Lightweight chart with Order Block Detector indicator
+  - **TradingView Advanced Chart Widget**: Professional-grade chart with drawing tools and real-time market data
+    - Full drawing toolkit (lines, shapes, annotations)
+    - Real-time market data from TradingView
+    - Support for any trading symbol (stocks, crypto, forex, etc.)
 
-- **Custom Indicators**: Multiple technical indicators implemented in TypeScript:
-  - **Order Block Detector [LuxAlgo]**: Identifies institutional order blocks based on volume pivots
-  - **Hull Suite**: Advanced moving average with three modes (HMA, EHMA, THMA)
-  - **Simple Moving Average (SMA)**: Classic trend indicator
-
-- **Order Block Detector Features**:
+- **Order Block Detector [LuxAlgo]**: Custom technical indicator for the custom chart mode
+  - Identifies institutional order blocks based on volume pivots
   - Detects bullish and bearish order blocks
   - Volume-based pivot detection
   - Configurable mitigation methods (Wick or Close)
   - Visual representation with colored zones and average lines
   - Real-time configuration adjustments
-
-- **Dynamic Configuration**: Adjust all indicators and their parameters in real-time
-- **Volume Data**: Realistic volume generation for enhanced indicator accuracy
-- **Interactive Charts**: Zoom, pan, and explore price data with ease
 
 ## Project Structure
 
@@ -32,7 +26,6 @@ src/
 ├── components/
 │   └── TradingViewChart.tsx       # Chart component with TradingView widget support
 ├── indicators/
-│   ├── simpleMovingAverage.ts     # SMA and Hull Suite implementations
 │   └── orderBlockDetector.ts      # Order Block Detector implementation
 ├── utils/
 │   └── generateSampleData.ts      # Sample data generator with volume
@@ -66,14 +59,17 @@ npm run preview
 1. Enable "Use TradingView Advanced Chart Widget" checkbox
 2. Enter a trading symbol (e.g., BTCUSD, AAPL, EURUSD)
 3. Explore real market data with TradingView's full charting interface
+4. Use the built-in drawing tools (lines, shapes, Fibonacci, etc.)
+5. Apply technical analysis with TradingView's extensive library of indicators
 
-### Custom Indicator Mode (Default)
+### Custom Chart Mode (Default)
 
-The application displays a candlestick chart with customizable indicators:
+The application displays a candlestick chart with the Order Block Detector indicator:
 
 #### Order Block Detector [LuxAlgo]
 - **Volume Pivot Length** (1-20): Sensitivity of volume pivot detection
-- **Bullish/Bearish OB Count** (1-10): Number of order blocks to display
+- **Bullish OB Count** (1-10): Number of bullish order blocks to display
+- **Bearish OB Count** (1-10): Number of bearish order blocks to display
 - **Mitigation Method**: Choose between Wick or Close for block invalidation
 
 **Visual Elements**:
@@ -81,19 +77,17 @@ The application displays a candlestick chart with customizable indicators:
 - Red zones: Bearish order blocks (institutional selling areas)
 - Gray lines: Average price within each order block
 
-#### Hull Suite
-- **Mode**: Select HMA, EHMA, or THMA calculation method
-- **Length** (2-200): Period for moving average calculation
-- **Length Multiplier** (0.1-5.0): Fine-tune the indicator sensitivity
-
-#### Simple Moving Average
-- **Period** (2-200): Number of candles to average
-
 ### Chart Interaction
-- Zoom in/out using mouse wheel
-- Pan by clicking and dragging
-- Hover over candles for detailed price information
-- Toggle indicators on/off with checkboxes
+- **Custom Chart Mode**:
+  - Zoom in/out using mouse wheel
+  - Pan by clicking and dragging
+  - Hover over candles for detailed price information
+  - Toggle Order Block Detector on/off with checkbox
+
+- **TradingView Advanced Chart Mode**:
+  - Full suite of drawing tools
+  - Multiple timeframes
+  - Professional charting features
 
 ## Order Block Detector Theory
 
@@ -110,27 +104,8 @@ The indicator uses volume pivots to identify these areas, making it more reliabl
 - **React 19**: Modern UI framework
 - **TypeScript 5**: Type-safe development
 - **Vite 7**: Lightning-fast build tool and dev server
-- **Lightweight Charts 4**: High-performance charting library
-- **TradingView Widget**: Professional-grade charting from TradingView
-
-## Adding New Indicators
-
-To add a new custom indicator:
-
-1. Create a new function in `src/indicators/` directory:
-```typescript
-export function yourIndicator(
-  data: CandlestickData<Time>[],
-  options: YourOptions
-): YourResult {
-  // Your indicator logic here
-  return result;
-}
-```
-
-2. Import and integrate it in `App.tsx` with state management
-3. Add visualization logic in `TradingViewChart.tsx`
-4. Create UI controls in the settings panel
+- **Lightweight Charts 4**: High-performance charting library (used in custom chart mode)
+- **TradingView Widget**: Professional-grade charting with drawing tools (advanced mode)
 
 ## License
 

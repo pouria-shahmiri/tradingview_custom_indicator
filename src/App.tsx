@@ -33,7 +33,7 @@ function App() {
         gap: '15px',
         marginBottom: '20px',
         padding: '15px',
-        background: '#f5f5f5',
+        background: '#000000ff',
         borderRadius: '8px',
       }}>
         {/* Symbol Input */}
@@ -172,31 +172,7 @@ function App() {
         />
       </div>
 
-      <div style={{
-        marginTop: '20px',
-        padding: '15px',
-        background: '#f9f9f9',
-        borderRadius: '8px',
-        fontSize: '14px',
-        lineHeight: '1.6',
-      }}>
-        <h3 style={{ marginTop: 0 }}>About Order Block Detector [LuxAlgo]</h3>
-        <p>
-          The Order Block Detector identifies potential institutional order blocks based on volume pivots and price action.
-        </p>
-        <ul>
-          <li><strong>Bullish Order Blocks</strong> (green): Areas where institutional buyers may have placed significant orders</li>
-          <li><strong>Bearish Order Blocks</strong> (red): Areas where institutional sellers may have placed significant orders</li>
-          <li><strong>Average Line</strong> (gray dashed): The midpoint of each order block</li>
-          <li><strong>Mitigation</strong>: Order blocks are removed when price revisits them (based on wick or close)</li>
-        </ul>
-        <p>
-          <strong>Features:</strong> Full TradingView Charting Library with all drawing tools, indicators, and professional features.
-        </p>
-        <p style={{ fontSize: '12px', color: '#666', marginBottom: 0 }}>
-          Original Pine Script by LuxAlgo - Licensed under CC BY-NC-SA 4.0
-        </p>
-      </div>
+     
     </div>
   )
 }

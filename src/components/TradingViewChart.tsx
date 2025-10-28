@@ -26,6 +26,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   const chartRef = useRef<IChartApi | null>(null);
   const candlestickSeriesRef = useRef<any>(null);
   const volumeSeriesRef = useRef<any>(null);
+  const orderBlockSeriesRef = useRef<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -171,70 +172,140 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   const drawOrderBlocks = (bars: Bar[]) => {
     if (!chartRef.current || !candlestickSeriesRef.current) return;
 
+    // Remove existing order block series
+    orderBlockSeriesRef.current.forEach((series) => {
+      try {
+        chartRef.current?.removeSeries(series);
+      } catch (e) {
+        // Ignore if series already removed
+      }
+    });
+    orderBlockSeriesRef.current = [];
+
     const { bullishBlocks, bearishBlocks } = calculateOrderBlocks(bars, orderBlockConfig);
 
     console.log(`Detected ${bullishBlocks.length} bullish and ${bearishBlocks.length} bearish order blocks`);
 
-    // Draw bullish order blocks (green rectangles)
+    // Draw bullish order blocks (green boxes)
     bullishBlocks.forEach((block) => {
-      candlestickSeriesRef.current?.createPriceLine({
-        price: block.top,
-        color: 'rgba(22, 148, 0, 0.4)',
+      // Top border line
+      const topLine = chartRef.current!.addLineSeries({
+        color: 'rgba(38, 166, 154, 0.9)',
         lineWidth: 2,
-        lineStyle: 0,
-        axisLabelVisible: false,
-        title: 'Bullish OB',
+        lastValueVisible: false,
+        priceLineVisible: false,
       });
+      topLine.setData([
+        { time: (block.startTime / 1000) as Time, value: block.top },
+        { time: (block.endTime / 1000) as Time, value: block.top },
+      ]);
+      orderBlockSeriesRef.current.push(topLine);
 
-      candlestickSeriesRef.current?.createPriceLine({
-        price: block.bottom,
-        color: 'rgba(22, 148, 0, 0.4)',
+      // Bottom border line
+      const bottomLine = chartRef.current!.addLineSeries({
+        color: 'rgba(38, 166, 154, 0.9)',
         lineWidth: 2,
-        lineStyle: 0,
-        axisLabelVisible: false,
-        title: '',
+        lastValueVisible: false,
+        priceLineVisible: false,
       });
+      bottomLine.setData([
+        { time: (block.startTime / 1000) as Time, value: block.bottom },
+        { time: (block.endTime / 1000) as Time, value: block.bottom },
+      ]);
+      orderBlockSeriesRef.current.push(bottomLine);
+
+      // Fill with baseline series
+      const fillSeries = chartRef.current!.addBaselineSeries({
+        baseValue: { type: 'price', price: block.bottom },
+        topLineColor: 'rgba(38, 166, 154, 0)',
+        topFillColor1: 'rgba(38, 166, 154, 0.3)',
+        topFillColor2: 'rgba(38, 166, 154, 0.1)',
+        bottomLineColor: 'rgba(38, 166, 154, 0)',
+        bottomFillColor1: 'rgba(38, 166, 154, 0.1)',
+        bottomFillColor2: 'rgba(38, 166, 154, 0.3)',
+        lastValueVisible: false,
+        priceLineVisible: false,
+      });
+      fillSeries.setData([
+        { time: (block.startTime / 1000) as Time, value: block.top },
+        { time: (block.endTime / 1000) as Time, value: block.top },
+      ]);
+      orderBlockSeriesRef.current.push(fillSeries);
 
       // Average line (dashed)
-      candlestickSeriesRef.current?.createPriceLine({
-        price: block.average,
-        color: 'rgba(149, 152, 161, 0.5)',
+      const avgLine = chartRef.current!.addLineSeries({
+        color: 'rgba(149, 152, 161, 0.7)',
         lineWidth: 1,
         lineStyle: 2,
-        axisLabelVisible: false,
-        title: '',
+        lastValueVisible: false,
+        priceLineVisible: false,
       });
+      avgLine.setData([
+        { time: (block.startTime / 1000) as Time, value: block.average },
+        { time: (block.endTime / 1000) as Time, value: block.average },
+      ]);
+      orderBlockSeriesRef.current.push(avgLine);
     });
 
-    // Draw bearish order blocks (red rectangles)
+    // Draw bearish order blocks (red boxes)
     bearishBlocks.forEach((block) => {
-      candlestickSeriesRef.current?.createPriceLine({
-        price: block.top,
-        color: 'rgba(255, 17, 0, 0.4)',
+      // Top border line
+      const topLine = chartRef.current!.addLineSeries({
+        color: 'rgba(239, 83, 80, 0.9)',
         lineWidth: 2,
-        lineStyle: 0,
-        axisLabelVisible: false,
-        title: 'Bearish OB',
+        lastValueVisible: false,
+        priceLineVisible: false,
       });
+      topLine.setData([
+        { time: (block.startTime / 1000) as Time, value: block.top },
+        { time: (block.endTime / 1000) as Time, value: block.top },
+      ]);
+      orderBlockSeriesRef.current.push(topLine);
 
-      candlestickSeriesRef.current?.createPriceLine({
-        price: block.bottom,
-        color: 'rgba(255, 17, 0, 0.4)',
+      // Bottom border line
+      const bottomLine = chartRef.current!.addLineSeries({
+        color: 'rgba(239, 83, 80, 0.9)',
         lineWidth: 2,
-        lineStyle: 0,
-        axisLabelVisible: false,
-        title: '',
+        lastValueVisible: false,
+        priceLineVisible: false,
       });
+      bottomLine.setData([
+        { time: (block.startTime / 1000) as Time, value: block.bottom },
+        { time: (block.endTime / 1000) as Time, value: block.bottom },
+      ]);
+      orderBlockSeriesRef.current.push(bottomLine);
+
+      // Fill with baseline series
+      const fillSeries = chartRef.current!.addBaselineSeries({
+        baseValue: { type: 'price', price: block.bottom },
+        topLineColor: 'rgba(239, 83, 80, 0)',
+        topFillColor1: 'rgba(239, 83, 80, 0.3)',
+        topFillColor2: 'rgba(239, 83, 80, 0.1)',
+        bottomLineColor: 'rgba(239, 83, 80, 0)',
+        bottomFillColor1: 'rgba(239, 83, 80, 0.1)',
+        bottomFillColor2: 'rgba(239, 83, 80, 0.3)',
+        lastValueVisible: false,
+        priceLineVisible: false,
+      });
+      fillSeries.setData([
+        { time: (block.startTime / 1000) as Time, value: block.top },
+        { time: (block.endTime / 1000) as Time, value: block.top },
+      ]);
+      orderBlockSeriesRef.current.push(fillSeries);
 
       // Average line (dashed)
-      candlestickSeriesRef.current?.createPriceLine({
-        price: block.average,
-        color: 'rgba(149, 152, 161, 0.5)',
+      const avgLine = chartRef.current!.addLineSeries({
+        color: 'rgba(149, 152, 161, 0.7)',
         lineWidth: 1,
         lineStyle: 2,
-        axisLabelVisible: false,
-        title: '',
+        lastValueVisible: false,
+        priceLineVisible: false,
       });
+      avgLine.setData([
+        { time: (block.startTime / 1000) as Time, value: block.average },
+        { time: (block.endTime / 1000) as Time, value: block.average },
+      ]);
+      orderBlockSeriesRef.current.push(avgLine);
     });
   };
 

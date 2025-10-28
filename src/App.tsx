@@ -1,34 +1,25 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import './App.css'
 import TradingViewChart from './components/TradingViewChart'
-import { generateSampleData } from './utils/generateSampleData'
-import { orderBlockDetector } from './indicators/orderBlockDetector'
+import type { OrderBlockConfig } from './utils/orderBlockCalculator'
 
 function App() {
-  // Generate sample candlestick data
-  const chartData = useMemo(() => generateSampleData(200, 100), []);
-
-  // Chart mode state
-  const [useTradingViewWidget, setUseTradingViewWidget] = useState<boolean>(false);
-  const [symbol, setSymbol] = useState<string>('BTCUSD');
+  // Symbol state
+  const [symbol, setSymbol] = useState<string>('BTCUSDT');
 
   // Order Block Detector state
   const [showOrderBlocks, setShowOrderBlocks] = useState<boolean>(true);
-  const [obVolumePivotLength, setObVolumePivotLength] = useState<number>(5);
-  const [obBullishCount, setObBullishCount] = useState<number>(3);
-  const [obBearishCount, setObBearishCount] = useState<number>(3);
-  const [obMitigationMethod, setObMitigationMethod] = useState<'Wick' | 'Close'>('Wick');
+  const [volumePivotLength, setVolumePivotLength] = useState<number>(5);
+  const [bullishOBCount, setBullishOBCount] = useState<number>(3);
+  const [bearishOBCount, setBearishOBCount] = useState<number>(3);
+  const [mitigationMethod, setMitigationMethod] = useState<'Wick' | 'Close'>('Wick');
 
-  // Calculate Order Block Detector indicator
-  const orderBlockData = useMemo(() => {
-    if (!showOrderBlocks || useTradingViewWidget) return undefined;
-    return orderBlockDetector(chartData, {
-      volumePivotLength: obVolumePivotLength,
-      bullishOBCount: obBullishCount,
-      bearishOBCount: obBearishCount,
-      mitigationMethod: obMitigationMethod,
-    });
-  }, [chartData, showOrderBlocks, obVolumePivotLength, obBullishCount, obBearishCount, obMitigationMethod, useTradingViewWidget]);
+  const orderBlockConfig: OrderBlockConfig = {
+    volumePivotLength,
+    bullishOBCount,
+    bearishOBCount,
+    mitigationMethod,
+  };
 
   return (
     <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -45,136 +36,125 @@ function App() {
         background: '#f5f5f5',
         borderRadius: '8px',
       }}>
-        {/* Chart Mode Toggle */}
+        {/* Symbol Input */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           gap: '15px',
           flexWrap: 'wrap',
-          borderBottom: '2px solid #ddd',
           paddingBottom: '15px',
+          borderBottom: '2px solid #ddd',
+        }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <strong>Symbol:</strong>
+            <input
+              type="text"
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+              placeholder="BTCUSDT"
+              style={{
+                padding: '6px 10px',
+                borderRadius: '4px',
+                border: '1px solid #ccc',
+                width: '150px',
+                fontSize: '14px',
+              }}
+            />
+          </label>
+          <div style={{ fontSize: '12px', color: '#666' }}>
+            Examples: BTCUSDT, ETHUSDT, BNBUSDT
+          </div>
+        </div>
+
+        {/* Order Block Detector Controls */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '15px',
+          flexWrap: 'wrap',
         }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <input
               type="checkbox"
-              checked={useTradingViewWidget}
-              onChange={(e) => setUseTradingViewWidget(e.target.checked)}
+              checked={showOrderBlocks}
+              onChange={(e) => setShowOrderBlocks(e.target.checked)}
             />
-            <strong>Use TradingView Advanced Chart Widget</strong>
+            <strong>Show Order Block Detector</strong>
           </label>
-          {useTradingViewWidget && (
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              Symbol:
-              <input
-                type="text"
-                value={symbol}
-                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-                placeholder="BTCUSD"
-                style={{
-                  padding: '6px 10px',
-                  borderRadius: '4px',
-                  border: '1px solid #ccc',
-                  width: '120px',
-                }}
-              />
-            </label>
-          )}
         </div>
 
-        {!useTradingViewWidget && (
+        {showOrderBlocks && (
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '15px',
             flexWrap: 'wrap',
+            paddingTop: '15px',
+            borderTop: '1px solid #ddd',
           }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Volume Pivot Length:
               <input
-                type="checkbox"
-                checked={showOrderBlocks}
-                onChange={(e) => setShowOrderBlocks(e.target.checked)}
+                type="number"
+                value={volumePivotLength}
+                onChange={(e) => setVolumePivotLength(Number(e.target.value))}
+                min="1"
+                max="20"
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                  width: '70px',
+                }}
               />
-              <strong>Order Block Detector [LuxAlgo]</strong>
             </label>
-            {showOrderBlocks && (
-              <>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  Volume Pivot Length:
-                  <input
-                    type="number"
-                    value={obVolumePivotLength}
-                    onChange={(e) => setObVolumePivotLength(Number(e.target.value))}
-                    min="1"
-                    max="20"
-                    style={{
-                      padding: '6px 10px',
-                      borderRadius: '4px',
-                      border: '1px solid #ccc',
-                      width: '70px',
-                    }}
-                  />
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  Bullish OB:
-                  <input
-                    type="number"
-                    value={obBullishCount}
-                    onChange={(e) => setObBullishCount(Number(e.target.value))}
-                    min="1"
-                    max="10"
-                    style={{
-                      padding: '6px 10px',
-                      borderRadius: '4px',
-                      border: '1px solid #ccc',
-                      width: '70px',
-                    }}
-                  />
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  Bearish OB:
-                  <input
-                    type="number"
-                    value={obBearishCount}
-                    onChange={(e) => setObBearishCount(Number(e.target.value))}
-                    min="1"
-                    max="10"
-                    style={{
-                      padding: '6px 10px',
-                      borderRadius: '4px',
-                      border: '1px solid #ccc',
-                      width: '70px',
-                    }}
-                  />
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  Mitigation Method:
-                  <select
-                    value={obMitigationMethod}
-                    onChange={(e) => setObMitigationMethod(e.target.value as 'Wick' | 'Close')}
-                    style={{
-                      padding: '6px 10px',
-                      borderRadius: '4px',
-                      border: '1px solid #ccc',
-                    }}
-                  >
-                    <option value="Wick">Wick</option>
-                    <option value="Close">Close</option>
-                  </select>
-                </label>
-              </>
-            )}
-          </div>
-        )}
-
-        {useTradingViewWidget && (
-          <div style={{
-            padding: '10px',
-            background: '#fff3cd',
-            borderRadius: '4px',
-            border: '1px solid #ffc107',
-          }}>
-            <strong>Note:</strong> TradingView Advanced Chart Widget displays real market data from TradingView.
-            Custom indicators are not available in this mode. Switch back to custom chart mode to use Order Block Detector and other custom indicators.
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Bullish OB:
+              <input
+                type="number"
+                value={bullishOBCount}
+                onChange={(e) => setBullishOBCount(Number(e.target.value))}
+                min="1"
+                max="10"
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                  width: '70px',
+                }}
+              />
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Bearish OB:
+              <input
+                type="number"
+                value={bearishOBCount}
+                onChange={(e) => setBearishOBCount(Number(e.target.value))}
+                min="1"
+                max="10"
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                  width: '70px',
+                }}
+              />
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Mitigation Method:
+              <select
+                value={mitigationMethod}
+                onChange={(e) => setMitigationMethod(e.target.value as 'Wick' | 'Close')}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                }}
+              >
+                <option value="Wick">Wick</option>
+                <option value="Close">Close</option>
+              </select>
+            </label>
           </div>
         )}
       </div>
@@ -186,10 +166,9 @@ function App() {
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
       }}>
         <TradingViewChart
-          data={chartData}
-          orderBlockData={orderBlockData}
           symbol={symbol}
-          useTradingViewWidget={useTradingViewWidget}
+          orderBlockConfig={orderBlockConfig}
+          showOrderBlocks={showOrderBlocks}
         />
       </div>
 
@@ -208,9 +187,12 @@ function App() {
         <ul>
           <li><strong>Bullish Order Blocks</strong> (green): Areas where institutional buyers may have placed significant orders</li>
           <li><strong>Bearish Order Blocks</strong> (red): Areas where institutional sellers may have placed significant orders</li>
-          <li><strong>Average Line</strong> (gray): The midpoint of each order block</li>
+          <li><strong>Average Line</strong> (gray dashed): The midpoint of each order block</li>
           <li><strong>Mitigation</strong>: Order blocks are removed when price revisits them (based on wick or close)</li>
         </ul>
+        <p>
+          <strong>Features:</strong> Full TradingView Charting Library with all drawing tools, indicators, and professional features.
+        </p>
         <p style={{ fontSize: '12px', color: '#666', marginBottom: 0 }}>
           Original Pine Script by LuxAlgo - Licensed under CC BY-NC-SA 4.0
         </p>

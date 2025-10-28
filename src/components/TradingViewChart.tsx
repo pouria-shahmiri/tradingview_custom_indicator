@@ -1,12 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { createChart, type IChartApi, type CandlestickData, type Time, ColorType, LineStyle } from 'lightweight-charts';
-import type { HullSuiteResult } from '../indicators/simpleMovingAverage';
 import type { OrderBlockDetectorResult } from '../indicators/orderBlockDetector';
 
 interface TradingViewChartProps {
   data: CandlestickData<Time>[];
-  customIndicator?: (data: CandlestickData<Time>[]) => { time: Time; value: number }[];
-  hullSuiteData?: HullSuiteResult;
   orderBlockData?: OrderBlockDetectorResult;
   symbol?: string;
   useTradingViewWidget?: boolean;
@@ -20,8 +17,6 @@ declare global {
 
 const TradingViewChart: React.FC<TradingViewChartProps> = ({
   data,
-  customIndicator,
-  hullSuiteData,
   orderBlockData,
   symbol = 'BTCUSD',
   useTradingViewWidget = false
@@ -215,50 +210,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       }
     }
 
-    // Add Hull Suite indicator if provided
-    if (hullSuiteData) {
-      // Main hull line
-      const mainLineSeries = chart.addLineSeries({
-        color: '#00ff00',
-        lineWidth: 2,
-        title: 'Hull Main',
-      });
-      mainLineSeries.setData(hullSuiteData.main);
-
-      // Shifted hull line
-      const shiftedLineSeries = chart.addLineSeries({
-        color: '#ff0000',
-        lineWidth: 2,
-        title: 'Hull Shifted',
-      });
-      shiftedLineSeries.setData(hullSuiteData.shifted);
-
-      // Add area between lines for band visualization
-      const areaSeries = chart.addAreaSeries({
-        topColor: 'rgba(0, 255, 0, 0.3)',
-        bottomColor: 'rgba(255, 0, 0, 0.3)',
-        lineColor: 'transparent',
-        lineWidth: 1,
-      });
-
-      // Create area data from the overlapping region
-      const areaData = hullSuiteData.shifted.map((point, idx) => ({
-        time: point.time,
-        value: hullSuiteData.main[idx + 2]?.value || point.value,
-      }));
-      areaSeries.setData(areaData);
-    }
-
-    // Add custom indicator if provided (e.g., SMA)
-    if (customIndicator) {
-      const indicatorData = customIndicator(data);
-      const lineSeries = chart.addLineSeries({
-        color: '#2962FF',
-        lineWidth: 2,
-        title: 'SMA',
-      });
-      lineSeries.setData(indicatorData);
-    }
 
     // Handle window resize
     const handleResize = () => {
@@ -278,7 +229,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         chartRef.current.remove();
       }
     };
-  }, [data, customIndicator, hullSuiteData, orderBlockData, symbol, useTradingViewWidget]);
+  }, [data, orderBlockData, symbol, useTradingViewWidget]);
 
   return (
     <div

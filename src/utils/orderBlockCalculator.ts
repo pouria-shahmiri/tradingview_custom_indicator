@@ -101,10 +101,11 @@ function calculateMarketStructure(bars: Bar[], length: number): number[] {
     const upper = highest(bars, i - 1, length);
     const lower = lowest(bars, i - 1, length);
 
-    if (bars[i - length].high > upper) {
-      os[i] = 0; // Bearish
-    } else if (bars[i - length].low < lower) {
-      os[i] = 1; // Bullish
+    // Check if current bar breaks above recent highs or below recent lows
+    if (bars[i].close > upper) {
+      os[i] = 1; // Bullish - broke above recent highs
+    } else if (bars[i].close < lower) {
+      os[i] = 0; // Bearish - broke below recent lows
     } else {
       os[i] = os[i - 1]; // Keep previous state
     }
@@ -139,15 +140,15 @@ export function calculateOrderBlocks(
   const endTime = bars[bars.length - 1].time;
 
   // Detect order blocks at volume pivots
-  for (const pivotIdx of volumePivots) {
+  for (const pivotIdx of Array.from(volumePivots)) {
     const obIdx = pivotIdx - volumePivotLength;
     if (obIdx < 0 || obIdx >= bars.length) continue;
 
     const candle = bars[obIdx];
     const hl2 = (candle.high + candle.low) / 2;
 
-    // Bullish order block (formed during uptrend)
-    if (marketStructure[pivotIdx] === 1) {
+    // Bullish order block (formed during bearish structure/downtrend, acts as support)
+    if (marketStructure[pivotIdx] === 0) {
       const block: OrderBlock = {
         top: hl2,
         bottom: candle.low,
@@ -160,8 +161,8 @@ export function calculateOrderBlocks(
       bullishBlocks.push(block);
     }
 
-    // Bearish order block (formed during downtrend)
-    if (marketStructure[pivotIdx] === 0) {
+    // Bearish order block (formed during bullish structure/uptrend, acts as resistance)
+    if (marketStructure[pivotIdx] === 1) {
       const block: OrderBlock = {
         top: candle.high,
         bottom: hl2,

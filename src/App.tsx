@@ -61,9 +61,7 @@ function App() {
               }}
             />
           </label>
-          <div style={{ fontSize: '12px', color: '#666' }}>
-            Examples: BTCUSDT, ETHUSDT, BNBUSDT
-          </div>
+
         </div>
 
         {/* Order Block Detector Controls */}

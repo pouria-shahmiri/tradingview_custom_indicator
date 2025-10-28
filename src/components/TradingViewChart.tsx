@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { createChart, CandlestickSeries, HistogramSeries, type IChartApi, type CandlestickData, type Time } from 'lightweight-charts';
+import { createChart, type IChartApi, type CandlestickData, type Time } from 'lightweight-charts';
 import { calculateOrderBlocks, type OrderBlockConfig } from '../utils/orderBlockCalculator';
 
 interface TradingViewChartProps {
@@ -57,7 +57,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       },
     });
 
-    const candlestickSeries = chart.addSeries(CandlestickSeries, {
+    const candlestickSeries = chart.addCandlestickSeries({
       upColor: '#26a69a',
       downColor: '#ef5350',
       borderVisible: false,
@@ -65,7 +65,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       wickDownColor: '#ef5350',
     });
 
-    const volumeSeries = chart.addSeries(HistogramSeries, {
+    const volumeSeries = chart.addHistogramSeries({
       color: '#26a69a',
       priceFormat: {
         type: 'volume',

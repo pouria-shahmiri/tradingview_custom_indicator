@@ -24,7 +24,7 @@ export interface OrderBlock {
 }
 
 export interface OrderBlockConfig {
-  volumePivotLength: number;
+  volumePivotLength: number; 
   bullishOBCount: number;
   bearishOBCount: number;
   mitigationMethod: 'Wick' | 'Close';

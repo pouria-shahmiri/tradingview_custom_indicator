@@ -38,13 +38,22 @@ export function generateSampleData(
     // Low is the minimum of open and close, minus some random amount
     const low = Math.min(open, close) * (1 - Math.random() * 0.01);
 
+    // Generate volume data with some realism
+    // Higher volume on bigger price movements
+    const priceChange = Math.abs(close - open);
+    const baseVolume = 1000000;
+    const volumeVariation = Math.random() * 0.5 + 0.75; // 0.75 to 1.25
+    const volumeFromPrice = (priceChange / currentPrice) * 10;
+    const volume = Math.floor(baseVolume * volumeVariation * (1 + volumeFromPrice));
+
     data.push({
       time: (date.getTime() / 1000) as Time,
       open: parseFloat(open.toFixed(2)),
       high: parseFloat(high.toFixed(2)),
       low: parseFloat(low.toFixed(2)),
       close: parseFloat(close.toFixed(2)),
-    });
+      volume: volume,
+    } as any);
 
     currentPrice = close;
   }

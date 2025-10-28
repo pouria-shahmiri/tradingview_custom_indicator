@@ -1,17 +1,17 @@
 # TradingView Chart with Order Block Detector
 
-A React + TypeScript project built with Vite that features both a custom chart with Order Block Detector indicator and TradingView's Advanced Chart widget with drawing tools.
+A professional React + TypeScript application featuring TradingView's Charting Library with a custom Order Block Detector indicator. This project uses the commercial TradingView Charting Library with full drawing tools, indicators, and real-time market data.
 
 ## Features
 
-- **Two Chart Modes**:
-  - **Custom Chart**: Lightweight chart with Order Block Detector indicator
-  - **TradingView Advanced Chart Widget**: Professional-grade chart with drawing tools and real-time market data
-    - Full drawing toolkit (lines, shapes, annotations)
-    - Real-time market data from TradingView
-    - Support for any trading symbol (stocks, crypto, forex, etc.)
+- **TradingView Charting Library**: Professional-grade charting with full feature set
+  - Complete suite of drawing tools (lines, shapes, Fibonacci, etc.)
+  - Real-time market data from Binance
+  - Multiple timeframes and chart types
+  - Volume indicator
+  - All professional charting features
 
-- **Order Block Detector [LuxAlgo]**: Custom technical indicator for the custom chart mode
+- **Order Block Detector [LuxAlgo]**: Custom technical indicator
   - Identifies institutional order blocks based on volume pivots
   - Detects bullish and bearish order blocks
   - Volume-based pivot detection
@@ -19,27 +19,45 @@ A React + TypeScript project built with Vite that features both a custom chart w
   - Visual representation with colored zones and average lines
   - Real-time configuration adjustments
 
-## Project Structure
+## Prerequisites
 
-```
-src/
-├── components/
-│   └── TradingViewChart.tsx       # Chart component with TradingView widget support
-├── indicators/
-│   └── orderBlockDetector.ts      # Order Block Detector implementation
-├── utils/
-│   └── generateSampleData.ts      # Sample data generator with volume
-├── App.tsx                         # Main application component
-└── main.tsx                        # Application entry point
-```
+**IMPORTANT**: This project requires a valid TradingView Charting Library license.
+
+If you don't have a license, visit: https://www.tradingview.com/HTML5-stock-forex-bitcoin-charting-library/
 
 ## Installation
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd tradingview_custom_indicator
+```
+
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-## Running the Project
+### 3. Setup TradingView Charting Library
+
+Follow the detailed instructions in [CHARTING_LIBRARY_SETUP.md](./CHARTING_LIBRARY_SETUP.md)
+
+**Quick Summary:**
+1. Download the Charting Library from TradingView (requires license)
+2. Extract it to `public/charting_library/`
+3. The final structure should be:
+   ```
+   public/
+   └── charting_library/
+       ├── charting_library/
+       │   └── charting_library.js
+       ├── datafeeds/
+       └── static/
+   ```
+
+### 4. Run the Application
 
 ```bash
 # Development server
@@ -52,44 +70,46 @@ npm run build
 npm run preview
 ```
 
+## Project Structure
+
+```
+src/
+├── components/
+│   └── TradingViewChart.tsx       # Main chart component with Charting Library
+├── datafeed/
+│   └── datafeed.ts                # Custom datafeed for Binance data
+├── studies/
+│   └── OrderBlockDetectorStudy.ts # Custom study definition (advanced)
+├── utils/
+│   └── orderBlockCalculator.ts    # Order block calculation logic
+├── App.tsx                         # Main application component
+└── main.tsx                        # Application entry point
+```
+
 ## Usage
 
-### TradingView Advanced Chart Mode
+### Chart Controls
 
-1. Enable "Use TradingView Advanced Chart Widget" checkbox
-2. Enter a trading symbol (e.g., BTCUSD, AAPL, EURUSD)
-3. Explore real market data with TradingView's full charting interface
-4. Use the built-in drawing tools (lines, shapes, Fibonacci, etc.)
-5. Apply technical analysis with TradingView's extensive library of indicators
+1. **Symbol Selection**: Enter any Binance trading pair (e.g., BTCUSDT, ETHUSDT, BNBUSDT)
+2. **Order Block Detector**: Toggle the indicator on/off
+3. **Drawing Tools**: Use TradingView's full suite of drawing tools from the sidebar
+4. **Timeframes**: Change timeframes using the top toolbar
+5. **Indicators**: Add additional TradingView indicators from the menu
 
-### Custom Chart Mode (Default)
+### Order Block Detector Settings
 
-The application displays a candlestick chart with the Order Block Detector indicator:
-
-#### Order Block Detector [LuxAlgo]
 - **Volume Pivot Length** (1-20): Sensitivity of volume pivot detection
 - **Bullish OB Count** (1-10): Number of bullish order blocks to display
 - **Bearish OB Count** (1-10): Number of bearish order blocks to display
 - **Mitigation Method**: Choose between Wick or Close for block invalidation
 
-**Visual Elements**:
-- Green zones: Bullish order blocks (institutional buying areas)
-- Red zones: Bearish order blocks (institutional selling areas)
-- Gray lines: Average price within each order block
+### Visual Elements
 
-### Chart Interaction
-- **Custom Chart Mode**:
-  - Zoom in/out using mouse wheel
-  - Pan by clicking and dragging
-  - Hover over candles for detailed price information
-  - Toggle Order Block Detector on/off with checkbox
+- **Green Boxes**: Bullish order blocks (institutional buying areas)
+- **Red Boxes**: Bearish order blocks (institutional selling areas)
+- **Gray Dashed Lines**: Average price within each order block
 
-- **TradingView Advanced Chart Mode**:
-  - Full suite of drawing tools
-  - Multiple timeframes
-  - Professional charting features
-
-## Order Block Detector Theory
+## Order Block Theory
 
 Order blocks represent areas where large institutional players have placed significant orders. These zones often act as support/resistance levels:
 
@@ -104,11 +124,77 @@ The indicator uses volume pivots to identify these areas, making it more reliabl
 - **React 19**: Modern UI framework
 - **TypeScript 5**: Type-safe development
 - **Vite 7**: Lightning-fast build tool and dev server
-- **Lightweight Charts 4**: High-performance charting library (used in custom chart mode)
-- **TradingView Widget**: Professional-grade charting with drawing tools (advanced mode)
+- **TradingView Charting Library**: Professional-grade charting (commercial license required)
+- **Binance API**: Real-time cryptocurrency market data
+
+## Data Source
+
+The application uses Binance's public API to fetch real-time cryptocurrency data. No API key is required for basic market data access.
+
+## Development
+
+### Adding Custom Indicators
+
+The Order Block Detector is implemented using:
+1. **Calculation Logic**: `src/utils/orderBlockCalculator.ts`
+2. **Visualization**: Drawing API in `src/components/TradingViewChart.tsx`
+
+To add your own custom indicators:
+1. Create calculation logic in `src/utils/`
+2. Draw shapes on the chart using TradingView's Drawing API
+3. Update controls in `App.tsx`
+
+### Modifying the Datafeed
+
+To connect to a different data source:
+1. Edit `src/datafeed/datafeed.ts`
+2. Implement the required datafeed methods
+3. See [TradingView Datafeed API docs](https://www.tradingview.com/charting-library-docs/latest/connecting_data/)
+
+## Troubleshooting
+
+### "TradingView library not loaded" Error
+
+1. Verify `public/charting_library/` exists with all files
+2. Check the script tag in `index.html`
+3. Clear browser cache and rebuild
+
+### Order Blocks Not Appearing
+
+1. Check browser console for errors
+2. Ensure symbol has volume data
+3. Try adjusting Volume Pivot Length
+4. Wait for sufficient data to load
+
+### Build Errors
+
+```bash
+# Clean install
+rm -rf node_modules package-lock.json
+npm install
+
+# Clear Vite cache
+rm -rf .vite
+npm run dev
+```
 
 ## License
 
 This project is licensed under MIT.
 
 The Order Block Detector indicator is based on Pine Script by LuxAlgo, licensed under CC BY-NC-SA 4.0.
+
+**Note**: TradingView Charting Library requires a separate commercial license from TradingView.
+
+## Credits
+
+- **Order Block Detector Algorithm**: Based on LuxAlgo's Pine Script implementation
+- **Charting Library**: TradingView
+- **Market Data**: Binance API
+
+## Support
+
+For issues related to:
+- **This project**: Open an issue on GitHub
+- **TradingView Charting Library**: Contact TradingView support
+- **Binance API**: See [Binance API documentation](https://binance-docs.github.io/apidocs/)

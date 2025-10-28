@@ -43,8 +43,8 @@ export default {
 
   searchSymbols: (
     userInput: string,
-    exchange: string,
-    symbolType: string,
+    _exchange: string,
+    _symbolType: string,
     onResultReadyCallback: (symbols: any[]) => void
   ) => {
     console.log('[Datafeed] searchSymbols:', userInput);
@@ -56,7 +56,7 @@ export default {
   resolveSymbol: (
     symbolName: string,
     onSymbolResolvedCallback: (symbolInfo: any) => void,
-    onResolveErrorCallback: (reason: string) => void
+    _onResolveErrorCallback: (reason: string) => void
   ) => {
     console.log('[Datafeed] resolveSymbol:', symbolName);
 
@@ -124,9 +124,9 @@ export default {
   subscribeBars: (
     symbolInfo: any,
     resolution: string,
-    onRealtimeCallback: (bar: Bar) => void,
+    _onRealtimeCallback: (bar: Bar) => void,
     subscriberUID: string,
-    onResetCacheNeededCallback: () => void
+    _onResetCacheNeededCallback: () => void
   ) => {
     console.log('[Datafeed] subscribeBars:', symbolInfo.ticker, resolution, subscriberUID);
     // For demonstration, we don't implement real-time updates

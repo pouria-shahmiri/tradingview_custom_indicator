@@ -193,7 +193,7 @@ export function getOrderBlockDetectorConfig() {
   return {
     name: 'Order Block Detector',
     metainfo: OrderBlockDetectorStudy._metainfo,
-    constructor: function() {
+    constructor: function(this: any) {
       // Custom study implementation
       this.init = function(context: any, inputCallback: any) {
         this._context = context;
@@ -208,16 +208,16 @@ export function getOrderBlockDetectorConfig() {
       this.main = function(context: any, inputCallback: any) {
         // Get inputs
         const inputs = inputCallback();
-        const volumePivotLength = inputs[0];
-        const bullishOBCount = inputs[1];
-        const bearishOBCount = inputs[2];
-        const mitigationMethod = inputs[3];
+        void inputs[0]; // volumePivotLength
+        void inputs[1]; // bullishOBCount
+        void inputs[2]; // bearishOBCount
+        void inputs[3]; // mitigationMethod
 
         // Access price data
-        const close = context.new_sym(context.symbol.ticker, context.PineJS.Std.close);
-        const high = context.new_sym(context.symbol.ticker, context.PineJS.Std.high);
-        const low = context.new_sym(context.symbol.ticker, context.PineJS.Std.low);
-        const volume = context.new_sym(context.symbol.ticker, context.PineJS.Std.volume);
+        void context.new_sym(context.symbol.ticker, context.PineJS.Std.close);
+        void context.new_sym(context.symbol.ticker, context.PineJS.Std.high);
+        void context.new_sym(context.symbol.ticker, context.PineJS.Std.low);
+        void context.new_sym(context.symbol.ticker, context.PineJS.Std.volume);
 
         // TODO: Implement the order block detection logic here
         // This is a placeholder that returns null values

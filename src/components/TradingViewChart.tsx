@@ -26,6 +26,8 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   const chartRef = useRef<IChartApi | null>(null);
   const candlestickSeriesRef = useRef<any>(null);
   const volumeSeriesRef = useRef<any>(null);
+  const orderBlockOverlayRef = useRef<HTMLDivElement>(null);
+  const orderBlockCleanupRef = useRef<(() => void) | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -153,7 +155,22 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
             volume: parseFloat(item[5]),
           }));
 
-          drawOrderBlocks(bars);
+          // Clean up previous subscription if exists
+          if (orderBlockCleanupRef.current) {
+            orderBlockCleanupRef.current();
+          }
+
+          // Draw order blocks and store cleanup function
+          orderBlockCleanupRef.current = drawOrderBlocks(bars);
+        } else {
+          // Clear order blocks if disabled
+          if (orderBlockOverlayRef.current) {
+            orderBlockOverlayRef.current.innerHTML = '';
+          }
+          if (orderBlockCleanupRef.current) {
+            orderBlockCleanupRef.current();
+            orderBlockCleanupRef.current = null;
+          }
         }
 
         chartRef.current?.timeScale().fitContent();
@@ -168,74 +185,109 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
     fetchData();
   }, [symbol, showOrderBlocks, orderBlockConfig]);
 
-  const drawOrderBlocks = (bars: Bar[]) => {
-    if (!chartRef.current || !candlestickSeriesRef.current) return;
+  const drawOrderBlocks = (bars: Bar[]): (() => void) => {
+    if (!chartRef.current || !candlestickSeriesRef.current || !orderBlockOverlayRef.current) {
+      return () => {}; // Return empty cleanup function if refs are not ready
+    }
 
     const { bullishBlocks, bearishBlocks } = calculateOrderBlocks(bars, orderBlockConfig);
 
     console.log(`Detected ${bullishBlocks.length} bullish and ${bearishBlocks.length} bearish order blocks`);
 
-    // Draw bullish order blocks (green rectangles)
-    bullishBlocks.forEach((block) => {
-      candlestickSeriesRef.current?.createPriceLine({
-        price: block.top,
-        color: 'rgba(22, 148, 0, 0.4)',
-        lineWidth: 2,
-        lineStyle: 0,
-        axisLabelVisible: false,
-        title: 'Bullish OB',
+    // Clear existing order block overlays
+    orderBlockOverlayRef.current.innerHTML = '';
+
+    const chart = chartRef.current;
+    const timeScale = chart.timeScale();
+    const priceScale = candlestickSeriesRef.current.priceScale();
+
+    const updateBoxes = () => {
+      if (!orderBlockOverlayRef.current) return;
+      orderBlockOverlayRef.current.innerHTML = '';
+
+      // Draw bullish order blocks (green boxes)
+      bullishBlocks.forEach((block) => {
+        const startX = timeScale.timeToCoordinate(block.startTime as Time);
+        const endX = timeScale.timeToCoordinate(block.endTime as Time);
+        const topY = priceScale.priceToCoordinate(block.top);
+        const bottomY = priceScale.priceToCoordinate(block.bottom);
+        const avgY = priceScale.priceToCoordinate(block.average);
+
+        if (startX === null || endX === null || topY === null || bottomY === null || avgY === null) return;
+
+        // Create filled box
+        const box = document.createElement('div');
+        box.style.position = 'absolute';
+        box.style.left = `${startX}px`;
+        box.style.top = `${topY}px`;
+        box.style.width = `${endX - startX}px`;
+        box.style.height = `${bottomY - topY}px`;
+        box.style.backgroundColor = 'rgba(22, 148, 0, 0.15)';
+        box.style.border = '1px solid rgba(22, 148, 0, 0.6)';
+        box.style.pointerEvents = 'none';
+        orderBlockOverlayRef.current?.appendChild(box);
+
+        // Create average line (dashed)
+        const avgLine = document.createElement('div');
+        avgLine.style.position = 'absolute';
+        avgLine.style.left = `${startX}px`;
+        avgLine.style.top = `${avgY}px`;
+        avgLine.style.width = `${endX - startX}px`;
+        avgLine.style.height = '1px';
+        avgLine.style.borderTop = '1px dashed rgba(149, 152, 161, 0.5)';
+        avgLine.style.pointerEvents = 'none';
+        orderBlockOverlayRef.current?.appendChild(avgLine);
       });
 
-      candlestickSeriesRef.current?.createPriceLine({
-        price: block.bottom,
-        color: 'rgba(22, 148, 0, 0.4)',
-        lineWidth: 2,
-        lineStyle: 0,
-        axisLabelVisible: false,
-        title: '',
-      });
+      // Draw bearish order blocks (red boxes)
+      bearishBlocks.forEach((block) => {
+        const startX = timeScale.timeToCoordinate(block.startTime as Time);
+        const endX = timeScale.timeToCoordinate(block.endTime as Time);
+        const topY = priceScale.priceToCoordinate(block.top);
+        const bottomY = priceScale.priceToCoordinate(block.bottom);
+        const avgY = priceScale.priceToCoordinate(block.average);
 
-      // Average line (dashed)
-      candlestickSeriesRef.current?.createPriceLine({
-        price: block.average,
-        color: 'rgba(149, 152, 161, 0.5)',
-        lineWidth: 1,
-        lineStyle: 2,
-        axisLabelVisible: false,
-        title: '',
-      });
-    });
+        if (startX === null || endX === null || topY === null || bottomY === null || avgY === null) return;
 
-    // Draw bearish order blocks (red rectangles)
-    bearishBlocks.forEach((block) => {
-      candlestickSeriesRef.current?.createPriceLine({
-        price: block.top,
-        color: 'rgba(255, 17, 0, 0.4)',
-        lineWidth: 2,
-        lineStyle: 0,
-        axisLabelVisible: false,
-        title: 'Bearish OB',
-      });
+        // Create filled box
+        const box = document.createElement('div');
+        box.style.position = 'absolute';
+        box.style.left = `${startX}px`;
+        box.style.top = `${topY}px`;
+        box.style.width = `${endX - startX}px`;
+        box.style.height = `${bottomY - topY}px`;
+        box.style.backgroundColor = 'rgba(255, 17, 0, 0.15)';
+        box.style.border = '1px solid rgba(255, 17, 0, 0.6)';
+        box.style.pointerEvents = 'none';
+        orderBlockOverlayRef.current?.appendChild(box);
 
-      candlestickSeriesRef.current?.createPriceLine({
-        price: block.bottom,
-        color: 'rgba(255, 17, 0, 0.4)',
-        lineWidth: 2,
-        lineStyle: 0,
-        axisLabelVisible: false,
-        title: '',
+        // Create average line (dashed)
+        const avgLine = document.createElement('div');
+        avgLine.style.position = 'absolute';
+        avgLine.style.left = `${startX}px`;
+        avgLine.style.top = `${avgY}px`;
+        avgLine.style.width = `${endX - startX}px`;
+        avgLine.style.height = '1px';
+        avgLine.style.borderTop = '1px dashed rgba(149, 152, 161, 0.5)';
+        avgLine.style.pointerEvents = 'none';
+        orderBlockOverlayRef.current?.appendChild(avgLine);
       });
+    };
 
-      // Average line (dashed)
-      candlestickSeriesRef.current?.createPriceLine({
-        price: block.average,
-        color: 'rgba(149, 152, 161, 0.5)',
-        lineWidth: 1,
-        lineStyle: 2,
-        axisLabelVisible: false,
-        title: '',
-      });
-    });
+    // Initial draw
+    updateBoxes();
+
+    // Update boxes when chart is scrolled or zoomed
+    const handleVisibleRangeChange = () => {
+      updateBoxes();
+    };
+
+    timeScale.subscribeVisibleTimeRangeChange(handleVisibleRangeChange);
+
+    // Clean up subscription when component unmounts or symbol changes
+    return () => {
+      timeScale.unsubscribeVisibleTimeRangeChange(handleVisibleRangeChange);
+    };
   };
 
   return (
@@ -283,7 +335,20 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
           height: '600px',
           position: 'relative',
         }}
-      />
+      >
+        <div
+          ref={orderBlockOverlayRef}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        />
+      </div>
     </div>
   );
 };

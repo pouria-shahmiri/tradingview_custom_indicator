@@ -50,7 +50,7 @@ function findVolumePivotHighs(bars: Bar[], length: number): Set<number> {
       }
     }
 
-    if (isPivot && currentVolume > 0) {
+    if (isPivot && currentVolume > 0) { 
       pivots.add(i);
     }
   }

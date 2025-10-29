@@ -1,9 +1,10 @@
-import { useState } from 'react'
-import './App.css'
-import TradingViewChart from './components/TradingViewChart'
-import type { OrderBlockConfig } from './utils/orderBlockCalculator'
+'use client'
 
-function App() {
+import { useState } from 'react'
+import TradingViewChart from '@/components/TradingViewChart'
+import type { OrderBlockConfig } from '@/utils/orderBlockCalculator'
+
+export default function Home() {
   // Symbol state
   const [symbol, setSymbol] = useState<string>('BTCUSDT');
 
@@ -170,9 +171,7 @@ function App() {
         />
       </div>
 
-     
+
     </div>
   )
 }
-
-export default App

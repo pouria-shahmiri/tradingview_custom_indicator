@@ -25,7 +25,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candlestickSeriesRef = useRef<any>(null);
-  const volumeSeriesRef = useRef<any>(null);
   const orderBlockOverlayRef = useRef<HTMLDivElement>(null);
   const orderBlockCleanupRef = useRef<(() => void) | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,6 +55,19 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         borderColor: '#485c7b',
         timeVisible: true,
         secondsVisible: false,
+        shiftVisibleRangeOnNewBar: false,
+        allowShiftVisibleRangeOnWhitespaceReplacement: false,
+      },
+      handleScroll: {
+        mouseWheel: true,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: true,
+      },
+      handleScale: {
+        axisPressedMouseMove: true,
+        mouseWheel: true,
+        pinch: true,
       },
     });
 
@@ -67,17 +79,8 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       wickDownColor: '#ef5350',
     });
 
-    const volumeSeries = chart.addHistogramSeries({
-      color: '#26a69a',
-      priceFormat: {
-        type: 'volume',
-      },
-      priceScaleId: '',
-    });
-
     chartRef.current = chart;
     candlestickSeriesRef.current = candlestickSeries;
-    volumeSeriesRef.current = volumeSeries;
 
     // Handle resize
     const handleResize = () => {
@@ -101,7 +104,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   // Fetch and update data
   useEffect(() => {
     const fetchData = async () => {
-      if (!candlestickSeriesRef.current || !volumeSeriesRef.current) return;
+      if (!candlestickSeriesRef.current) return;
 
       setIsLoading(true);
       setError(null);
@@ -131,18 +134,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
           close: parseFloat(item[4]),
         }));
 
-        const volumeData = data.map((item: any) => {
-          const close = parseFloat(item[4]);
-          const open = parseFloat(item[1]);
-          return {
-            time: (item[0] / 1000) as Time,
-            value: parseFloat(item[5]),
-            color: close >= open ? 'rgba(38, 166, 154, 0.5)' : 'rgba(239, 83, 80, 0.5)',
-          };
-        });
-
         candlestickSeriesRef.current.setData(candlestickData);
-        volumeSeriesRef.current.setData(volumeData);
 
         // Calculate and draw order blocks if enabled
         if (showOrderBlocks) {
@@ -173,7 +165,10 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
           }
         }
 
-        chartRef.current?.timeScale().fitContent();
+        // Only fit content on initial load, not on config changes
+        if (isLoading) {
+          chartRef.current?.timeScale().fitContent();
+        }
         setIsLoading(false);
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -199,31 +194,40 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
     const chart = chartRef.current;
     const timeScale = chart.timeScale();
-    const priceScale = chart.priceScale('right');
+    const series = candlestickSeriesRef.current;
 
     const updateBoxes = () => {
-      if (!orderBlockOverlayRef.current) return;
+      if (!orderBlockOverlayRef.current || !chartContainerRef.current) return;
       orderBlockOverlayRef.current.innerHTML = '';
+
+      // Get the chart container width to extend lines to the right edge
+      const containerWidth = chartContainerRef.current.clientWidth;
 
       // Draw bullish order blocks (green lines)
       bullishBlocks.forEach((block) => {
-        const startX = timeScale.timeToCoordinate(block.startTime as Time);
-        const endX = timeScale.timeToCoordinate(block.endTime as Time);
-        const topY = priceScale.priceToCoordinate(block.top);
-        const bottomY = priceScale.priceToCoordinate(block.bottom);
-        const avgY = priceScale.priceToCoordinate(block.average);
+        const startX = timeScale.timeToCoordinate((block.startTime / 1000) as Time);
+        const topY = series.priceToCoordinate(block.top);
+        const bottomY = series.priceToCoordinate(block.bottom);
+        const avgY = series.priceToCoordinate(block.average);
 
-        if (startX === null || endX === null || topY === null || bottomY === null || avgY === null) return;
+        if (startX === null || topY === null || bottomY === null || avgY === null) {
+          return;
+        }
+
+        // Calculate width to extend to right edge of chart
+        const lineWidth = Math.max(containerWidth - startX, 100);
 
         // Create top line
         const topLine = document.createElement('div');
         topLine.style.position = 'absolute';
         topLine.style.left = `${startX}px`;
         topLine.style.top = `${topY}px`;
-        topLine.style.width = `${endX - startX}px`;
-        topLine.style.height = '2px';
-        topLine.style.backgroundColor = 'rgba(22, 148, 0, 0.8)';
+        topLine.style.width = `${lineWidth}px`;
+        topLine.style.height = '3px';
+        topLine.style.backgroundColor = '#169400';
+        topLine.style.opacity = '0.8';
         topLine.style.pointerEvents = 'none';
+        topLine.style.zIndex = '999';
         orderBlockOverlayRef.current?.appendChild(topLine);
 
         // Create bottom line
@@ -231,10 +235,12 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         bottomLine.style.position = 'absolute';
         bottomLine.style.left = `${startX}px`;
         bottomLine.style.top = `${bottomY}px`;
-        bottomLine.style.width = `${endX - startX}px`;
-        bottomLine.style.height = '2px';
-        bottomLine.style.backgroundColor = 'rgba(22, 148, 0, 0.8)';
+        bottomLine.style.width = `${lineWidth}px`;
+        bottomLine.style.height = '3px';
+        bottomLine.style.backgroundColor = '#169400';
+        bottomLine.style.opacity = '0.8';
         bottomLine.style.pointerEvents = 'none';
+        bottomLine.style.zIndex = '999';
         orderBlockOverlayRef.current?.appendChild(bottomLine);
 
         // Create average line (dashed)
@@ -242,32 +248,40 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         avgLine.style.position = 'absolute';
         avgLine.style.left = `${startX}px`;
         avgLine.style.top = `${avgY}px`;
-        avgLine.style.width = `${endX - startX}px`;
-        avgLine.style.height = '1px';
-        avgLine.style.borderTop = '1px dashed rgba(149, 152, 161, 0.5)';
+        avgLine.style.width = `${lineWidth}px`;
+        avgLine.style.height = '2px';
+        avgLine.style.backgroundColor = '#9598a1';
+        avgLine.style.opacity = '0.5';
         avgLine.style.pointerEvents = 'none';
+        avgLine.style.zIndex = '999';
         orderBlockOverlayRef.current?.appendChild(avgLine);
       });
 
       // Draw bearish order blocks (red lines)
       bearishBlocks.forEach((block) => {
-        const startX = timeScale.timeToCoordinate(block.startTime as Time);
-        const endX = timeScale.timeToCoordinate(block.endTime as Time);
-        const topY = priceScale.priceToCoordinate(block.top);
-        const bottomY = priceScale.priceToCoordinate(block.bottom);
-        const avgY = priceScale.priceToCoordinate(block.average);
+        const startX = timeScale.timeToCoordinate((block.startTime / 1000) as Time);
+        const topY = series.priceToCoordinate(block.top);
+        const bottomY = series.priceToCoordinate(block.bottom);
+        const avgY = series.priceToCoordinate(block.average);
 
-        if (startX === null || endX === null || topY === null || bottomY === null || avgY === null) return;
+        if (startX === null || topY === null || bottomY === null || avgY === null) {
+          return;
+        }
+
+        // Calculate width to extend to right edge of chart
+        const lineWidth = Math.max(containerWidth - startX, 100);
 
         // Create top line
         const topLine = document.createElement('div');
         topLine.style.position = 'absolute';
         topLine.style.left = `${startX}px`;
         topLine.style.top = `${topY}px`;
-        topLine.style.width = `${endX - startX}px`;
-        topLine.style.height = '2px';
-        topLine.style.backgroundColor = 'rgba(255, 17, 0, 0.8)';
+        topLine.style.width = `${lineWidth}px`;
+        topLine.style.height = '3px';
+        topLine.style.backgroundColor = '#ff1100';
+        topLine.style.opacity = '0.8';
         topLine.style.pointerEvents = 'none';
+        topLine.style.zIndex = '999';
         orderBlockOverlayRef.current?.appendChild(topLine);
 
         // Create bottom line
@@ -275,10 +289,12 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         bottomLine.style.position = 'absolute';
         bottomLine.style.left = `${startX}px`;
         bottomLine.style.top = `${bottomY}px`;
-        bottomLine.style.width = `${endX - startX}px`;
-        bottomLine.style.height = '2px';
-        bottomLine.style.backgroundColor = 'rgba(255, 17, 0, 0.8)';
+        bottomLine.style.width = `${lineWidth}px`;
+        bottomLine.style.height = '3px';
+        bottomLine.style.backgroundColor = '#ff1100';
+        bottomLine.style.opacity = '0.8';
         bottomLine.style.pointerEvents = 'none';
+        bottomLine.style.zIndex = '999';
         orderBlockOverlayRef.current?.appendChild(bottomLine);
 
         // Create average line (dashed)
@@ -286,10 +302,12 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         avgLine.style.position = 'absolute';
         avgLine.style.left = `${startX}px`;
         avgLine.style.top = `${avgY}px`;
-        avgLine.style.width = `${endX - startX}px`;
-        avgLine.style.height = '1px';
-        avgLine.style.borderTop = '1px dashed rgba(149, 152, 161, 0.5)';
+        avgLine.style.width = `${lineWidth}px`;
+        avgLine.style.height = '2px';
+        avgLine.style.backgroundColor = '#9598a1';
+        avgLine.style.opacity = '0.5';
         avgLine.style.pointerEvents = 'none';
+        avgLine.style.zIndex = '999';
         orderBlockOverlayRef.current?.appendChild(avgLine);
       });
     };
@@ -349,13 +367,22 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         </div>
       )}
       <div
-        ref={chartContainerRef}
         style={{
           width: '100%',
           height: '600px',
           position: 'relative',
         }}
       >
+        <div
+          ref={chartContainerRef}
+          style={{
+            width: '100%',
+            height: '600px',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          }}
+        />
         <div
           ref={orderBlockOverlayRef}
           style={{
@@ -365,7 +392,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
             width: '100%',
             height: '100%',
             pointerEvents: 'none',
-            zIndex: 1,
+            zIndex: 10,
           }}
         />
       </div>

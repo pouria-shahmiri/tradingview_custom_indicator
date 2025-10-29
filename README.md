@@ -66,24 +66,26 @@ npm run dev
 # Build for production
 npm run build
 
-# Preview production build
-npm run preview
+# Start production server
+npm start
 ```
 
 ## Project Structure
 
 ```
+app/
+├── layout.tsx                      # Root layout with metadata
+├── page.tsx                        # Home page (main application)
+└── globals.css                     # Global styles
 src/
 ├── components/
-│   └── TradingViewChart.tsx       # Main chart component with Charting Library
+│   └── TradingViewChart.tsx       # Main chart component (client component)
 ├── datafeed/
 │   └── datafeed.ts                # Custom datafeed for Binance data
 ├── studies/
 │   └── OrderBlockDetectorStudy.ts # Custom study definition (advanced)
-├── utils/
-│   └── orderBlockCalculator.ts    # Order block calculation logic
-├── App.tsx                         # Main application component
-└── main.tsx                        # Application entry point
+└── utils/
+    └── orderBlockCalculator.ts    # Order block calculation logic
 ```
 
 ## Usage
@@ -121,9 +123,9 @@ The indicator uses volume pivots to identify these areas, making it more reliabl
 
 ## Technologies
 
+- **Next.js 15**: Modern React framework with App Router
 - **React 19**: Modern UI framework
 - **TypeScript 5**: Type-safe development
-- **Vite 7**: Lightning-fast build tool and dev server
 - **TradingView Charting Library**: Professional-grade charting (commercial license required)
 - **Binance API**: Real-time cryptocurrency market data
 
@@ -142,7 +144,7 @@ The Order Block Detector is implemented using:
 To add your own custom indicators:
 1. Create calculation logic in `src/utils/`
 2. Draw shapes on the chart using TradingView's Drawing API
-3. Update controls in `App.tsx`
+3. Update controls in `app/page.tsx`
 
 ### Modifying the Datafeed
 
@@ -173,8 +175,8 @@ To connect to a different data source:
 rm -rf node_modules package-lock.json
 npm install
 
-# Clear Vite cache
-rm -rf .vite
+# Clear Next.js cache
+rm -rf .next
 npm run dev
 ```
 

@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect, useRef, useState } from 'react';
-import { createChart, type IChartApi, type CandlestickData, type Time } from 'lightweight-charts';
+import { createChart, type IChartApi, type CandlestickData, type Time, CandlestickSeries, HistogramSeries } from 'lightweight-charts';
 import { calculateOrderBlocks, type OrderBlockConfig } from '../utils/orderBlockCalculator';
 
 interface TradingViewChartProps {
@@ -71,7 +73,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       },
     });
 
-    const candlestickSeries = chart.addCandlestickSeries({
+    const candlestickSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#26a69a',
       downColor: '#ef5350',
       borderVisible: false,
@@ -79,6 +81,17 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       wickDownColor: '#ef5350',
     });
 
+<<<<<<< HEAD
+=======
+    const volumeSeries = chart.addSeries(HistogramSeries, {
+      color: '#26a69a',
+      priceFormat: {
+        type: 'volume',
+      },
+      priceScaleId: '',
+    });
+
+>>>>>>> 5e236731046d3c94a6267ef9cbc84285e4f9edbd
     chartRef.current = chart;
     candlestickSeriesRef.current = candlestickSeries;
 
@@ -194,10 +207,17 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
     const chart = chartRef.current;
     const timeScale = chart.timeScale();
+<<<<<<< HEAD
     const series = candlestickSeriesRef.current;
 
     const updateBoxes = () => {
       if (!orderBlockOverlayRef.current || !chartContainerRef.current) return;
+=======
+    const candlestickSeries = candlestickSeriesRef.current;
+
+    const updateBoxes = () => {
+      if (!orderBlockOverlayRef.current || !candlestickSeries) return;
+>>>>>>> 5e236731046d3c94a6267ef9cbc84285e4f9edbd
       orderBlockOverlayRef.current.innerHTML = '';
 
       // Get the chart container width to extend lines to the right edge
@@ -205,10 +225,18 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
       // Draw bullish order blocks (green lines)
       bullishBlocks.forEach((block) => {
+<<<<<<< HEAD
         const startX = timeScale.timeToCoordinate((block.startTime / 1000) as Time);
         const topY = series.priceToCoordinate(block.top);
         const bottomY = series.priceToCoordinate(block.bottom);
         const avgY = series.priceToCoordinate(block.average);
+=======
+        const startX = timeScale.timeToCoordinate(block.startTime as Time);
+        const endX = timeScale.timeToCoordinate(block.endTime as Time);
+        const topY = candlestickSeries.priceToCoordinate(block.top);
+        const bottomY = candlestickSeries.priceToCoordinate(block.bottom);
+        const avgY = candlestickSeries.priceToCoordinate(block.average);
+>>>>>>> 5e236731046d3c94a6267ef9cbc84285e4f9edbd
 
         if (startX === null || topY === null || bottomY === null || avgY === null) {
           return;
@@ -259,10 +287,18 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
       // Draw bearish order blocks (red lines)
       bearishBlocks.forEach((block) => {
+<<<<<<< HEAD
         const startX = timeScale.timeToCoordinate((block.startTime / 1000) as Time);
         const topY = series.priceToCoordinate(block.top);
         const bottomY = series.priceToCoordinate(block.bottom);
         const avgY = series.priceToCoordinate(block.average);
+=======
+        const startX = timeScale.timeToCoordinate(block.startTime as Time);
+        const endX = timeScale.timeToCoordinate(block.endTime as Time);
+        const topY = candlestickSeries.priceToCoordinate(block.top);
+        const bottomY = candlestickSeries.priceToCoordinate(block.bottom);
+        const avgY = candlestickSeries.priceToCoordinate(block.average);
+>>>>>>> 5e236731046d3c94a6267ef9cbc84285e4f9edbd
 
         if (startX === null || topY === null || bottomY === null || avgY === null) {
           return;

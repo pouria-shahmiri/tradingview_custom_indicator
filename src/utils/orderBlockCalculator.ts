@@ -28,15 +28,47 @@ export interface OrderBlock {
 }
 
 export interface OrderBlockConfig {
-  volumePivotLength: number;
+  volumePivotLength: number; 
   bullishOBCount: number;
   bearishOBCount: number;
   mitigationMethod: 'Wick' | 'Close';
 }
 
 /**
+<<<<<<< HEAD
  * Calculate highest high over a period ending at endIdx (inclusive)
  * Mimics Pine Script: ta.highest(length)
+=======
+ * Find volume pivot highs
+ */
+function findVolumePivotHighs(bars: Bar[], length: number): Set<number> {
+  const pivots = new Set<number>();
+
+  for (let i = length; i < bars.length - length; i++) {
+    const currentVolume = bars[i].volume || 0;
+    let isPivot = true;
+
+    for (let j = 1; j <= length; j++) {
+      const leftVolume = bars[i - j].volume || 0;
+      const rightVolume = bars[i + j].volume || 0;
+
+      if (currentVolume <= leftVolume || currentVolume <= rightVolume) {
+        isPivot = false;
+        break;
+      }
+    }
+
+    if (isPivot && currentVolume > 0) { 
+      pivots.add(i);
+    }
+  }
+
+  return pivots;
+}
+
+/**
+ * Calculate highest high over a period
+>>>>>>> 5e236731046d3c94a6267ef9cbc84285e4f9edbd
  */
 function highest(bars: Bar[], endIdx: number, length: number): number {
   let max = -Infinity;

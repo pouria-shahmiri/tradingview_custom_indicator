@@ -1,9 +1,10 @@
-import { useState } from 'react'
-import './App.css'
-import TradingViewChart from './components/TradingViewChart'
-import type { OrderBlockConfig } from './utils/orderBlockCalculator'
+'use client'
 
-function App() {
+import { useState } from 'react'
+import TradingViewChart from '@/components/TradingViewChart'
+import type { OrderBlockConfig } from '@/utils/orderBlockCalculator'
+
+export default function Home() {
   // Symbol state
   const [symbol, setSymbol] = useState<string>('BTCUSDT');
 
@@ -61,9 +62,7 @@ function App() {
               }}
             />
           </label>
-          <div style={{ fontSize: '12px', color: '#666' }}>
-            Examples: BTCUSDT, ETHUSDT, BNBUSDT
-          </div>
+
         </div>
 
         {/* Order Block Detector Controls */}
@@ -172,9 +171,7 @@ function App() {
         />
       </div>
 
-     
+
     </div>
   )
 }
-
-export default App

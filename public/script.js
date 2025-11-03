@@ -16,8 +16,91 @@ function initOnReady() {
       "https://demo-feed-data.tradingview.com"
     ),
     locale: "en",
-    disabled_features: [],
-    enabled_features: [],
+
+    // Advanced features enabled
+    enabled_features: [
+      "study_templates",
+      "side_toolbar_in_fullscreen_mode",
+      "header_in_fullscreen_mode",
+      "trading_options",
+      "move_logo_to_main_pane",
+      "create_volume_indicator_by_default",
+      "property_pages",
+      "show_chart_property_page",
+      "chart_property_page_scales",
+      "chart_property_page_trading",
+      "show_interval_dialog_on_key_press",
+      "countdown",
+      "display_market_status",
+      "high_density_bars",
+      "use_localstorage_for_settings",
+      "save_chart_properties_to_local_storage",
+      "show_zoom_and_move_buttons_on_touch",
+      "chart_crosshair_menu",
+      "same_data_requery",
+      "side_toolbar_in_fullscreen_mode",
+      "control_bar",
+      "timeframes_toolbar",
+      "edit_buttons_in_legend",
+      "context_menus",
+      "pricescale_currency",
+      "scales_date_format",
+      "main_series_scale_menu",
+      "show_object_tree",
+      "show_logo_on_all_charts",
+      "chart_style_hilo",
+      "items_favoriting",
+      "save_shortcut",
+      "study_market_minimized",
+    ],
+
+    // Keep only minimal disabled features
+    disabled_features: [
+      "header_saveload",
+      "use_localstorage_for_settings",
+      "go_to_date",
+    ],
+
+    // Chart settings
+    charts_storage_url: "https://saveload.tradingview.com",
+    charts_storage_api_version: "1.1",
+    client_id: "tradingview.com",
+    user_id: "public_user_id",
+
+    // UI customization
+    theme: "light",
+    custom_css_url: "",
+    loading_screen: { backgroundColor: "#ffffff" },
+
+    // Toolbar configuration
+    toolbar_bg: "#ffffff",
+
+    // Overrides for better appearance
+    overrides: {
+      "mainSeriesProperties.style": 1, // Candles
+      "mainSeriesProperties.showCountdown": true,
+      "paneProperties.background": "#ffffff",
+      "paneProperties.vertGridProperties.color": "#e1e3e6",
+      "paneProperties.horzGridProperties.color": "#e1e3e6",
+      "symbolWatermarkProperties.transparency": 90,
+      "scalesProperties.textColor": "#AAA",
+      "mainSeriesProperties.candleStyle.upColor": "#26a69a",
+      "mainSeriesProperties.candleStyle.downColor": "#ef5350",
+      "mainSeriesProperties.candleStyle.drawWick": true,
+      "mainSeriesProperties.candleStyle.drawBorder": true,
+      "mainSeriesProperties.candleStyle.borderColor": "#378658",
+      "mainSeriesProperties.candleStyle.borderUpColor": "#26a69a",
+      "mainSeriesProperties.candleStyle.borderDownColor": "#ef5350",
+      "mainSeriesProperties.candleStyle.wickUpColor": "#26a69a",
+      "mainSeriesProperties.candleStyle.wickDownColor": "#ef5350",
+    },
+
+    // Studies (indicators) overrides
+    studies_overrides: {
+      "volume.volume.color.0": "#ef5350",
+      "volume.volume.color.1": "#26a69a",
+      "volume.volume.transparency": 65,
+    },
     custom_indicators_getter: function (PineJS) {
       return Promise.resolve([
         {
@@ -362,11 +445,24 @@ function initOnReady() {
     },
   }));
 
-  // When chart is ready, create the Order Block Detector study
+  // When chart is ready, configure advanced features
   widget.onChartReady(() => {
+    console.log("Chart is ready! Initializing Order Block Detector...");
+
+    // Create Volume indicator by default
     widget
       .chart()
-      .createStudy("Order Block Detector", true, false, undefined, {});
+      .createStudy("Volume", false, false, { length: 20 }, { "volume.volume.transparency": 65 });
+
+    // Create the Order Block Detector custom indicator
+    widget
+      .chart()
+      .createStudy("Order Block Detector", true, false,
+        [5, 3, 3, 0], // Input values: volumePivotLength, bullishOBCount, bearishOBCount, mitigationMethod
+        {}
+      );
+
+    console.log("Order Block Detector initialized successfully!");
   });
 }
 

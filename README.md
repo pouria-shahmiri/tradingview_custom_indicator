@@ -1,89 +1,95 @@
 # TradingView Chart with Order Block Detector
 
-A professional React + TypeScript application featuring TradingView's Charting Library with a custom Order Block Detector indicator. This project uses the commercial TradingView Charting Library with full drawing tools, indicators, and real-time market data.
+A professional application featuring TradingView's Charting Library with a custom Order Block Detector indicator. This project provides two implementations:
+
+1. **Standalone HTML/JS** (`public/`): Clean implementation using TradingView's custom indicators API
+2. **Next.js + React** (`app/` and `src/`): Full-featured React application with Lightweight Charts
+
+Both implementations include the Order Block Detector algorithm based on LuxAlgo's indicator.
 
 ## Features
 
-- **TradingView Charting Library**: Professional-grade charting with full feature set
-  - Complete suite of drawing tools (lines, shapes, Fibonacci, etc.)
-  - Real-time market data from Binance
-  - Multiple timeframes and chart types
-  - Volume indicator
-  - All professional charting features
+### Order Block Detector [LuxAlgo]
+- Identifies institutional order blocks based on volume pivots
+- Detects bullish and bearish order blocks
+- Volume-based pivot detection
+- Configurable mitigation methods (Wick or Close)
+- Visual representation with colored lines and zones
+- Real-time configuration adjustments
 
-- **Order Block Detector [LuxAlgo]**: Custom technical indicator
-  - Identifies institutional order blocks based on volume pivots
-  - Detects bullish and bearish order blocks
-  - Volume-based pivot detection
-  - Configurable mitigation methods (Wick or Close)
-  - Visual representation with colored zones and average lines
-  - Real-time configuration adjustments
+### Two Implementations
 
-## Prerequisites
+#### 1. Standalone HTML/JS (`public/` directory)
+- ✅ Clean, simple structure inspired by TradingView examples
+- ✅ Uses TradingView Charting Library's `custom_indicators_getter` API
+- ✅ Order Block indicator as a native TradingView custom study
+- ✅ No build tools required - just open `index.html`
+- ✅ Easy to understand and modify
+- 📁 See `public/README.md` for details
 
-**IMPORTANT**: This project requires a valid TradingView Charting Library license.
+#### 2. Next.js + React (`app/` and `src/` directories)
+- ✅ Full-featured React application with TypeScript
+- ✅ Uses Lightweight Charts library
+- ✅ Custom overlay drawing for order blocks
+- ✅ Interactive controls panel
+- ✅ Modern Next.js 15 with App Router
+- ✅ Server-side rendering support
+- 📁 Previous implementation with advanced features
 
-If you don't have a license, visit: https://www.tradingview.com/HTML5-stock-forex-bitcoin-charting-library/
+## Quick Start
 
-## Installation
+### Option 1: Standalone HTML/JS (Recommended for Beginners)
 
-### 1. Clone the Repository
+1. Navigate to the `public/` directory
+2. Open `index.html` in your web browser
+3. The chart loads automatically with the Order Block Detector
 
-```bash
-git clone <repository-url>
-cd tradingview_custom_indicator
-```
+No installation or build process required! See `public/README.md` for more details.
 
-### 2. Install Dependencies
+### Option 2: Next.js + React (Advanced)
 
-```bash
-npm install
-```
-
-### 3. Setup TradingView Charting Library
-
-Follow the detailed instructions in [CHARTING_LIBRARY_SETUP.md](./CHARTING_LIBRARY_SETUP.md)
-
-**Quick Summary:**
-1. Download the Charting Library from TradingView (requires license)
-2. Extract it to `public/charting_library/`
-3. The final structure should be:
-   ```
-   public/
-   └── charting_library/
-       ├── charting_library/
-       │   └── charting_library.js
-       ├── datafeeds/
-       └── static/
+1. **Clone and Install**
+   ```bash
+   git clone <repository-url>
+   cd tradingview_custom_indicator
+   npm install
    ```
 
-### 4. Run the Application
+2. **Run Development Server**
+   ```bash
+   npm run dev
+   ```
 
-```bash
-# Development server
-npm run dev
+3. **Open the Application**
+   - Next.js app: http://localhost:3000
+   - Standalone HTML: http://localhost:3000/index.html
 
-# Build for production
-npm run build
-
-# Start production server
-npm start
-```
+4. **Build for Production**
+   ```bash
+   npm run build
+   npm start
+   ```
 
 ## Project Structure
 
 ```
-app/
+public/                             # ⭐ Standalone HTML/JS Implementation
+├── index.html                      # Clean HTML structure
+├── script.js                       # TradingView widget + Order Block indicator
+└── README.md                       # Standalone implementation docs
+
+app/                                # Next.js App Router
 ├── layout.tsx                      # Root layout with metadata
-├── page.tsx                        # Home page (main application)
+├── page.tsx                        # Home page (React implementation)
 └── globals.css                     # Global styles
-src/
+
+src/                                # React Implementation
 ├── components/
-│   └── TradingViewChart.tsx       # Main chart component (client component)
+│   └── TradingViewChart.tsx       # Chart component with Lightweight Charts
 ├── datafeed/
 │   └── datafeed.ts                # Custom datafeed for Binance data
 ├── studies/
-│   └── OrderBlockDetectorStudy.ts # Custom study definition (advanced)
+│   └── OrderBlockDetectorStudy.ts # Custom study definition
 └── utils/
     └── orderBlockCalculator.ts    # Order block calculation logic
 ```

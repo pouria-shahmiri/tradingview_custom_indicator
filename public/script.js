@@ -366,7 +366,7 @@ function initOnReady() {
   widget.onChartReady(() => {
     widget
       .chart()
-      .createStudy("Order Block Detector", false, false, undefined, {});
+      .createStudy("Order Block Detector", true, false, undefined, {});
   });
 }
 

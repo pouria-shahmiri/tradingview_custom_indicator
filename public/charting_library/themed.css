@@ -1,0 +1,115 @@
+:root:not(.theme-dark) {
+    --tv-color-platform-background: #ffffff;
+    --tv-color-pane-background: #ffffff;
+
+    /* --tv-color-toolbar-button-background-hover: rgb(36, 59, 209); */
+
+    /* --tv-color-toolbar-button-background-expanded: rgb(36, 59, 209); */
+
+    /* --tv-color-toolbar-button-background-active: rgb(36, 59, 209); */
+
+    /* --tv-color-toolbar-button-background-active-hover: rgb(36, 59, 209); */
+
+    /* --tv-color-toolbar-button-text: rgb(36, 59, 209); */
+
+    /* --tv-color-toolbar-button-text-hover: rgb(36, 59, 209); */
+
+    /* --tv-color-toolbar-button-text-active: rergb(36, 59, 209); */
+
+    /* --tv-color-toolbar-button-text-active-hover: rgb(36, 59, 209); */
+
+    /* --tv-color-item-active-text: rgb(6, 6, 255); */
+
+    /* --tv-color-toolbar-toggle-button-background-active: rgb(36, 59, 209); */
+
+    /* --tv-color-toolbar-toggle-button-background-active-hover: rgb(36, 59, 209); */
+
+    /* --tv-color-toolbar-divider-background: rgb(36, 59, 209); */
+
+    
+    --tv-color-toolbar-save-layout-loader: #d3d3d3;
+    --tv-color-popup-background: #f1f1f1;
+    /*--tv-color-popup-element-text: rgb(136, 24, 79);
+    --tv-color-popup-element-text-hover: rgb(74, 20, 140);
+    --tv-color-popup-element-background-hover: rgb(244, 143, 177);
+    --tv-color-popup-element-divider-background: rgb(251, 223, 244);
+    --tv-color-popup-element-secondary-text: rgb(74, 20, 140);
+    --tv-color-popup-element-hint-text: rgb(74, 20, 140);
+    --tv-color-popup-element-text-active: rgb(6, 6, 255);
+    --tv-color-popup-element-background-active: red;
+    --tv-color-popup-element-toolbox-text: rgb(136, 24, 79);
+    --tv-color-popup-element-toolbox-text-hover: rgb(74, 20, 140);
+    --tv-color-popup-element-toolbox-text-active-hover: rgb(74, 20, 140);
+    --tv-color-popup-element-toolbox-background-hover: rgb(222, 89, 132);
+    --tv-color-popup-element-toolbox-background-active-hover: magenta; */
+}
+
+:root:not(.theme-dark) div[data-name="symbol-search-items-dialog"] {
+    background-color: #ffffff !important;
+}
+
+:root:not(.theme-dark) .footer-dwINHZFL {
+    background-color: #ffffff !important;
+}
+
+:root:not(.theme-dark) [data-dialog-name="Symbol Search"] {
+    border: 1px solid #71717a;
+    border-radius: 6px;
+}
+
+.theme-dark:root {
+    --tv-color-platform-background: #0e0e0e;
+    --tv-color-pane-background: #0e0e0e;
+    --tv-color-toolbar-save-layout-loader: #0e0e0e;
+    --tv-color-popup-background: #111111;
+    
+    /* --tv-color-toolbar-button-background-hover: #0e0e0e;
+
+    --tv-color-toolbar-button-background-expanded: #0e0e0e;
+
+    --tv-color-toolbar-button-background-active: #0e0e0e;
+
+    --tv-color-toolbar-button-background-active-hover: #0e0e0e; */
+
+    /* --tv-color-toolbar-button-text: white;
+
+    --tv-color-toolbar-button-text-hover: white;
+
+    --tv-color-toolbar-button-text-active: yellow;
+
+    --tv-color-toolbar-button-text-active-hover: blue;
+
+    --tv-color-item-active-text: rgb(6, 255, 6);
+
+    --tv-color-toolbar-toggle-button-background-active: blue;
+
+    --tv-color-toolbar-toggle-button-background-active-hover: white;
+
+    --tv-color-toolbar-divider-background: rgb(251, 223, 244); */
+
+    
+    /* --tv-color-popup-element-text: white;
+    --tv-color-popup-element-text-hover: gray;
+    --tv-color-popup-element-background-hover: blue;
+    --tv-color-popup-element-divider-background: gray;
+    --tv-color-popup-element-secondary-text: white;
+    --tv-color-popup-element-hint-text: white;
+    --tv-color-popup-element-text-active: rgb(6, 6, 255);
+    --tv-color-popup-element-toolbox-text: white;
+    --tv-color-popup-element-toolbox-text-hover:gray;
+    --tv-color-popup-element-background-active: rgb(255, 247, 0);
+    --tv-color-popup-element-toolbox-text-active-hover: red;
+    --tv-color-popup-element-toolbox-background-hover: blue;
+    --tv-color-popup-element-toolbox-background-active-hover: white;  */
+}
+
+.theme-dark div[data-name="symbol-search-items-dialog"],
+.theme-dark .footer-dwINHZFL,
+.theme-dark .item-gjrLBBL3 {
+    background-color: #0e0e0e !important;
+}
+
+.theme-dark [data-dialog-name="Symbol Search"] {
+    border: 1px solid #27272a;
+    border-radius: 6px;
+}

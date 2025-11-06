@@ -1,232 +1,291 @@
 /**
- * Order Block Detector [LuxAlgo] - Custom Study for TradingView Charting Library
+ * Order Block Detector - Custom Study for TradingView Charting Library
+ * Based on iSolani's Orderblocks indicator
  *
- * This study detects and visualizes institutional order blocks based on volume pivots.
- * Converted from Pine Script to TradingView Custom Study API
- *
- * Original Pine Script by LuxAlgo
- * License: Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+ * Detects order blocks based on volume imbalance and gap formations
  */
 
-interface IStudyMetaInfo {
-  name: string;
-  description: string;
-  shortDescription: string;
-  is_price_study: boolean;
-  format: {
-    type: string;
-    precision: number;
-  };
-  defaults: {
-    inputs: {
-      volumePivotLength: number;
-      bullishOBCount: number;
-      bearishOBCount: number;
-      mitigationMethod: number;
-    };
-  };
-  inputs: Array<{
-    id: string;
-    name: string;
-    type: string;
-    defval: number;
-    min?: number;
-    max?: number;
-    options?: Array<[string, number]>;
+interface OrderBlockStudyContext {
+  _context: any;
+  _input: any;
+  _orderBlocks: Array<{
+    top: number;
+    bottom: number;
+    left: number;
+    isBullish: boolean;
   }>;
-  plots: Array<{
-    id: string;
-    type: string;
-  }>;
-  styles: {
-    [key: string]: {
-      title: string;
-      histogramBase: number;
-    };
-  };
+  init: (context: any, inputCallback: any) => void;
+  main: (ctx: any, inputCallback: any) => number[];
 }
 
-interface IStudyContext {
-  new_sym: (tickerId: string, propType: any) => any;
-  new_var: (defValue: any) => any;
-}
-
-interface IPineStudyResult {
-  _metainfo: IStudyMetaInfo;
-  _context?: IStudyContext;
-  _main?: (context: IStudyContext, inputCallback: () => any) => any[];
-}
-
-export const OrderBlockDetectorStudy: IPineStudyResult = {
-  _metainfo: {
-    name: "Order Block Detector",
-    description: "Order Block Detector [LuxAlgo]",
-    shortDescription: "OB Detector",
-    is_price_study: true,
-    format: {
-      type: "price",
-      precision: 2,
-    },
-    defaults: {
-      inputs: {
-        volumePivotLength: 5,
-        bullishOBCount: 3,
-        bearishOBCount: 3,
-        mitigationMethod: 0, // 0 = Wick, 1 = Close
-      },
-    },
-    inputs: [
-      {
-        id: "volumePivotLength",
-        name: "Volume Pivot Length",
-        type: "integer",
-        defval: 5,
-        min: 1,
-        max: 20,
-      },
-      {
-        id: "bullishOBCount",
-        name: "Bullish Order Block Count",
-        type: "integer",
-        defval: 3,
-        min: 1,
-        max: 10,
-      },
-      {
-        id: "bearishOBCount",
-        name: "Bearish Order Block Count",
-        type: "integer",
-        defval: 3,
-        min: 1,
-        max: 10,
-      },
-      {
-        id: "mitigationMethod",
-        name: "Mitigation Method",
-        type: "integer",
-        defval: 0,
-        options: [
-          ["Wick", 0],
-          ["Close", 1],
-        ],
-      },
-    ],
-    plots: [
-      {
-        id: "bullish_ob_top",
-        type: "line",
-      },
-      {
-        id: "bullish_ob_bottom",
-        type: "line",
-      },
-      {
-        id: "bullish_ob_avg",
-        type: "line",
-      },
-      {
-        id: "bearish_ob_top",
-        type: "line",
-      },
-      {
-        id: "bearish_ob_bottom",
-        type: "line",
-      },
-      {
-        id: "bearish_ob_avg",
-        type: "line",
-      },
-    ],
-    styles: {
-      bullish_ob_top: {
-        title: "Bullish OB Top",
-        histogramBase: 0,
-      },
-      bullish_ob_bottom: {
-        title: "Bullish OB Bottom",
-        histogramBase: 0,
-      },
-      bullish_ob_avg: {
-        title: "Bullish OB Average",
-        histogramBase: 0,
-      },
-      bearish_ob_top: {
-        title: "Bearish OB Top",
-        histogramBase: 0,
-      },
-      bearish_ob_bottom: {
-        title: "Bearish OB Bottom",
-        histogramBase: 0,
-      },
-      bearish_ob_avg: {
-        title: "Bearish OB Average",
-        histogramBase: 0,
-      },
-    },
-  },
-};
-
-/**
- * Register the custom study with TradingView
- */
-export function registerOrderBlockDetectorStudy() {
-  if (typeof window !== 'undefined' && (window as any).TradingView) {
-    const widget = (window as any).TradingView;
-
-    // Check if custom studies API is available
-    if (widget && widget.widget && widget.widget.prototype.createStudy) {
-      console.log('Order Block Detector study registered');
-
-      // The study will be registered through the widget options
-      // when the chart is created
-      return OrderBlockDetectorStudy;
-    }
-  }
-
-  return null;
-}
-
-/**
- * Helper: Create custom study configuration for widget
- */
-export function getOrderBlockDetectorConfig() {
+export function createOrderBlockDetectorStudy(PineJS: any) {
   return {
     name: 'Order Block Detector',
-    metainfo: OrderBlockDetectorStudy._metainfo,
-    constructor: function(this: any) {
-      // Custom study implementation
-      this.init = function(context: any, inputCallback: any) {
+    metainfo: {
+      _metainfoVersion: 52,
+      id: 'OrderBlockDetector@tv-basicstudies-1',
+      description: 'Orderblocks detector',
+      shortDescription: 'OB Detector',
+
+      format: {
+        type: 'price',
+        precision: 2,
+      },
+
+      linkedToSeries: true,
+      is_price_study: true,
+      is_hidden_study: false,
+
+      plots: [
+        { id: 'bull_top', type: 'line' },
+        { id: 'bull_btm', type: 'line' },
+        { id: 'bear_top', type: 'line' },
+        { id: 'bear_btm', type: 'line' },
+      ],
+
+      filledAreas: [
+        {
+          id: 'bullish_fill',
+          objAId: 'bull_top',
+          objBId: 'bull_btm',
+          type: 'plot_plot',
+          title: 'Bullish OB',
+        },
+        {
+          id: 'bearish_fill',
+          objAId: 'bear_top',
+          objBId: 'bear_btm',
+          type: 'plot_plot',
+          title: 'Bearish OB',
+        },
+      ],
+
+      defaults: {
+        styles: {
+          bull_top: {
+            linestyle: 0,
+            linewidth: 1,
+            plottype: 2,
+            trackPrice: false,
+            transparency: 100,
+            visible: false,
+          },
+          bull_btm: {
+            linestyle: 0,
+            linewidth: 1,
+            plottype: 2,
+            trackPrice: false,
+            transparency: 100,
+            visible: false,
+          },
+          bear_top: {
+            linestyle: 0,
+            linewidth: 1,
+            plottype: 2,
+            trackPrice: false,
+            transparency: 100,
+            visible: false,
+          },
+          bear_btm: {
+            linestyle: 0,
+            linewidth: 1,
+            plottype: 2,
+            trackPrice: false,
+            transparency: 100,
+            visible: false,
+          },
+        },
+
+        filledAreasStyle: {
+          bullish_fill: {
+            color: '#00FF00',
+            transparency: 85,
+            visible: true,
+          },
+          bearish_fill: {
+            color: '#FF0000',
+            transparency: 85,
+            visible: true,
+          },
+        },
+
+        inputs: {
+          volumeFilter: 4.0,
+          volumeIndexLength: 20,
+          volumeMALength: 31,
+        },
+      },
+
+      styles: {
+        bull_top: { title: 'Bullish OB Top', histogramBase: 0 },
+        bull_btm: { title: 'Bullish OB Bottom', histogramBase: 0 },
+        bear_top: { title: 'Bearish OB Top', histogramBase: 0 },
+        bear_btm: { title: 'Bearish OB Bottom', histogramBase: 0 },
+      },
+
+      inputs: [
+        {
+          id: 'volumeFilter',
+          name: 'Filter (Volume Multiplier)',
+          defval: 4.0,
+          type: 'float',
+          min: 0.1,
+          step: 0.1,
+        },
+        {
+          id: 'volumeIndexLength',
+          name: 'Volume Index Length',
+          defval: 20,
+          type: 'integer',
+          min: 1,
+          max: 100,
+        },
+        {
+          id: 'volumeMALength',
+          name: 'Volume MA Length',
+          defval: 31,
+          type: 'integer',
+          min: 1,
+          max: 100,
+        },
+      ],
+    },
+
+    constructor: function (this: OrderBlockStudyContext) {
+      this.init = function (this: OrderBlockStudyContext, context: any, inputCallback: any) {
         this._context = context;
         this._input = inputCallback;
-
-        // Initialize variables
-        this._volumePivots = [];
-        this._bullishBlocks = [];
-        this._bearishBlocks = [];
+        this._orderBlocks = [];
       };
 
-      this.main = function(context: any, inputCallback: any) {
+      this.main = function (this: OrderBlockStudyContext, ctx: any, inputCallback: any) {
+        this._context = ctx;
+        this._input = inputCallback;
+
         // Get inputs
-        const inputs = inputCallback();
-        void inputs[0]; // volumePivotLength
-        void inputs[1]; // bullishOBCount
-        void inputs[2]; // bearishOBCount
-        void inputs[3]; // mitigationMethod
+        const volumeFilter = this._input(0);
+        const volumeIndexLength = this._input(1);
+        const volumeMALength = this._input(2);
 
-        // Access price data
-        void context.new_sym(context.symbol.ticker, context.PineJS.Std.close);
-        void context.new_sym(context.symbol.ticker, context.PineJS.Std.high);
-        void context.new_sym(context.symbol.ticker, context.PineJS.Std.low);
-        void context.new_sym(context.symbol.ticker, context.PineJS.Std.volume);
+        // Set minimum depth
+        this._context.setMinimumAdditionalDepth(Math.max(volumeIndexLength, volumeMALength) + 10);
 
-        // TODO: Implement the order block detection logic here
-        // This is a placeholder that returns null values
-        // In production, you would implement the full algorithm
+        // Get current bar data
+        const open = PineJS.Std.open(this._context);
+        const high = PineJS.Std.high(this._context);
+        const low = PineJS.Std.low(this._context);
+        const close = PineJS.Std.close(this._context);
+        const volume = PineJS.Std.volume(this._context);
 
-        return [null, null, null, null, null, null];
+        // Create series for historical access
+        const open_series = this._context.new_var(open);
+        const high_series = this._context.new_var(high);
+        const low_series = this._context.new_var(low);
+        const close_series = this._context.new_var(close);
+        const volume_series = this._context.new_var(volume);
+
+        // Get historical values (offset by 3 bars like in Pine Script)
+        const open_3 = open_series.get(3);
+        const high_3 = high_series.get(3);
+        const low_3 = low_series.get(3);
+        const close_3 = close_series.get(3);
+        const volume_3 = volume_series.get(3);
+
+        const high_1 = high_series.get(1);
+        const low_1 = low_series.get(1);
+
+        // Volume Analysis (from Pine Script)
+        const range_3 = high_3 - low_3;
+        const buyVolume = range_3 > 0 ? (volume_3 * (close_3 - low_3) / range_3) : 0;
+        const sellVolume = range_3 > 0 ? (volume_3 * (high_3 - close_3) / range_3) : 0;
+
+        // Calculate volume difference
+        const volumeDifference = Math.abs(buyVolume - sellVolume);
+
+        // Calculate volume moving average
+        let volumeDiffSum = 0;
+        for (let i = 0; i < volumeMALength; i++) {
+          const v = volume_series.get(i + 3);
+          const h = high_series.get(i + 3);
+          const l = low_series.get(i + 3);
+          const c = close_series.get(i + 3);
+          const r = h - l;
+          if (r > 0) {
+            const bv = v * (c - l) / r;
+            const sv = v * (h - c) / r;
+            volumeDiffSum += Math.abs(bv - sv);
+          }
+        }
+        const averageVolumeDifference = volumeDiffSum / volumeMALength;
+
+        // Check if current bar has high volume difference
+        const highVolumeDifference = volumeDifference > (averageVolumeDifference * volumeFilter);
+
+        // Determine if bar is bullish or bearish
+        const currentBarBullish = close_3 > open_3;
+
+        // Detect Order Blocks (from Pine Script logic)
+        if (highVolumeDifference) {
+          if (currentBarBullish && high_3 < low_1) {
+            // Bullish order block detected
+            this._orderBlocks.push({
+              top: high_3,
+              bottom: low_3,
+              left: this._context.symbol.time,
+              isBullish: true,
+            });
+          } else if (!currentBarBullish && low_3 > high_1) {
+            // Bearish order block detected
+            this._orderBlocks.push({
+              top: high_3,
+              bottom: low_3,
+              left: this._context.symbol.time,
+              isBullish: false,
+            });
+          }
+        }
+
+        // Remove mitigated order blocks
+        this._orderBlocks = this._orderBlocks.filter(block => {
+          if (block.isBullish) {
+            // Bullish block is mitigated if price goes below bottom
+            return low >= block.bottom;
+          } else {
+            // Bearish block is mitigated if price goes above top
+            return high <= block.top;
+          }
+        });
+
+        // Find most recent order block to display
+        let bull_top = NaN;
+        let bull_btm = NaN;
+        let bear_top = NaN;
+        let bear_btm = NaN;
+
+        // Get most recent bullish block
+        for (let i = this._orderBlocks.length - 1; i >= 0; i--) {
+          const block = this._orderBlocks[i];
+          if (block.isBullish) {
+            bull_top = block.top;
+            bull_btm = block.bottom;
+            break;
+          }
+        }
+
+        // Get most recent bearish block
+        for (let i = this._orderBlocks.length - 1; i >= 0; i--) {
+          const block = this._orderBlocks[i];
+          if (!block.isBullish) {
+            bear_top = block.top;
+            bear_btm = block.bottom;
+            break;
+          }
+        }
+
+        return [bull_top, bull_btm, bear_top, bear_btm];
       };
     },
   };
 }
 
-export default OrderBlockDetectorStudy;
+export default createOrderBlockDetectorStudy;
